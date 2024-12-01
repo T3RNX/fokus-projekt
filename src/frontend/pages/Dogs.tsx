@@ -1,4 +1,16 @@
+import { Box, Typography } from '@mui/material';
 
-const Dogs = () => <div>Dogs Page</div>;
+const Dogs = () => {
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Dashboard
+      </Typography>
+      <Typography variant="body1">
+        Welcome to the Dog Page!
+      </Typography>
+    </Box>
+  );
+};
 
 export default Dogs;

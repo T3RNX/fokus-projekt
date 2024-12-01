@@ -1,5 +1,16 @@
-import React from "react";
+import { Box, Typography } from '@mui/material';
 
-const Dashboard = () => <div>Dashboard</div>;
+const Dashboard = () => {
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Dashboard
+      </Typography>
+      <Typography variant="body1">
+        Welcome to the Dashboard!
+      </Typography>
+    </Box>
+  );
+};
 
 export default Dashboard;
