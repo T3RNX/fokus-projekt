@@ -1,16 +1,18 @@
 import { Box, Typography } from '@mui/material';
 
-const Treatment = () => {
+
+const Settings = () => {
+  console.log('Settings page rendered');
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box>
       <Typography variant="h4" gutterBottom>
-        Treatment
+        Settings
       </Typography>
       <Typography variant="body1">
-        This is the Treatment page. Here you can manage the treatments for the dogs.
+        Welcome to the Settings Page!
       </Typography>
     </Box>
   );
 };
 
-export default Treatment;
+export default Settings;

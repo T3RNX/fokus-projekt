@@ -1,13 +1,15 @@
 import { Box, Typography } from '@mui/material';
 
+
 const Owner = () => {
+  console.log('Owner page rendered');
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box>
       <Typography variant="h4" gutterBottom>
         Owner
       </Typography>
       <Typography variant="body1">
-        This is the Owner page. Here you can manage the owners of the dogs.
+        Welcome to the Owner Page!
       </Typography>
     </Box>
   );

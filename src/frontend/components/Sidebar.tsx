@@ -49,10 +49,10 @@ const Sidebar = () => {
       {/* Navigation Menu */}
       <List sx={{ marginTop: 2 }}>
         {[
-          { text: 'Dashboard', icon: <DashboardIcon />, path: '#dashboard' },
-          { text: 'Hunde', icon: <PetsIcon />, path: '#hunde' },
-          { text: 'Besitzer', icon: <PeopleIcon />, path: '#besitzer' },
-          { text: 'Behandlungen', icon: <HealingIcon />, path: '#behandlungen' },
+          { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+          { text: 'Hunde', icon: <PetsIcon />, path: '/dogs' },
+          { text: 'Besitzer', icon: <PeopleIcon />, path: '/owner' },
+          { text: 'Behandlungen', icon: <HealingIcon />, path: '/treatments' }
         ].map((item) => (
           <ListItem
             key={item.text}
@@ -91,15 +91,15 @@ const Sidebar = () => {
         <List>
           <ListItem
             component="a"
-            href="#einstellungen"
+            href="/settings"
             sx={{
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               padding: '8px 16px',
               borderRadius: '8px',
-              backgroundColor: isSelected('#einstellungen') ? '#333' : 'transparent',
-              color: isSelected('#einstellungen') ? '#FFFFFF' : '#FFFFFF',
+              backgroundColor: isSelected('/settings') ? '#333' : 'transparent',
+              color: isSelected('/settings') ? '#FFFFFF' : '#FFFFFF',
               marginBottom: '12px', // Add spacing between items
               '&:hover': {
                 backgroundColor: '#555', // Hover effect
@@ -109,12 +109,12 @@ const Sidebar = () => {
           >
             <ListItemIcon
               sx={{
-                color: isSelected('#einstellungen') ? '#FFFFFF' : '#FFFFFF',
+                color: isSelected('/settings') ? '#FFFFFF' : '#FFFFFF',
               }}
             >
               <SettingsIcon />
             </ListItemIcon>
-            <ListItemText primary="Einstellungen" />
+            <ListItemText primary="Settings" />
           </ListItem>
         </List>
       </Box>

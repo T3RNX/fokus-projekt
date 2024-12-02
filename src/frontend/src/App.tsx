@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import DashboardLayout from '../components/DashboardLayout';
-import Dogs from '../pages/Dogs';
-import Owner from '../pages/Owner';
-import Treatments from '../pages/Treatment';
-import Dashboard from '../pages/Dashboard';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import DashboardLayout from "../components/DashboardLayout";
+import Dogs from "../pages/Dogs";
+import Owner from "../pages/Owner";
+import Treatments from "../pages/Treatments";
+import Dashboard from "../pages/Dashboard";
+import Settings from "../pages/Settings";
 
 const App = () => {
   return (
@@ -13,7 +14,8 @@ const App = () => {
           <Route path="/dogs" element={<Dogs />} />
           <Route path="/owner" element={<Owner />} />
           <Route path="/treatments" element={<Treatments />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/" element={<Dashboard />} />
         </Routes>
       </DashboardLayout>
     </Router>

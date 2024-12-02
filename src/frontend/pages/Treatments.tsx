@@ -1,18 +1,17 @@
 import { Box, Typography } from '@mui/material';
 
-
-const Dogs = () => {
-  console.log('Dogs page rendered');
+const Treatments = () => {
+  console.log('Treatment page rendered');
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Dogs
+        Treatments
       </Typography>
       <Typography variant="body1">
-        Welcome to the Dog Page!
+        Welcome to the Treatment Page!
       </Typography>
     </Box>
   );
 };
 
-export default Dogs;
+export default Treatments;
