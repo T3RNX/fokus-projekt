@@ -1,4 +1,12 @@
-import { Box, Typography, List, ListItemIcon, ListItemText, Divider, ListItem } from '@mui/material';
+import {
+  Box,
+  Typography,
+  List,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  ListItem,
+} from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PetsIcon from '@mui/icons-material/Pets';
 import PeopleIcon from '@mui/icons-material/People';
@@ -10,7 +18,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   // Function to determine if a menu item is selected
-  const isSelected = (path: string) => location.hash === path;
+  const isSelected = (path: string) => location.pathname === path;
 
   return (
     <Box
@@ -52,7 +60,7 @@ const Sidebar = () => {
           { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
           { text: 'Hunde', icon: <PetsIcon />, path: '/dogs' },
           { text: 'Besitzer', icon: <PeopleIcon />, path: '/owner' },
-          { text: 'Behandlungen', icon: <HealingIcon />, path: '/treatments' }
+          { text: 'Behandlungen', icon: <HealingIcon />, path: '/treatments' },
         ].map((item) => (
           <ListItem
             key={item.text}
@@ -65,17 +73,17 @@ const Sidebar = () => {
               padding: '8px 16px',
               borderRadius: '8px',
               backgroundColor: isSelected(item.path) ? '#333' : 'transparent',
-              color: isSelected(item.path) ? '#FFFFFF' : '#FFFFFF',
+              color: '#FFFFFF',
               marginBottom: '12px', // Add spacing between items
               '&:hover': {
-                backgroundColor: '#555', // Hover effect
+                backgroundColor: isSelected(item.path) ? '#333' : '#555', // Maintain selected background
               },
               transition: 'background-color 0.3s ease',
             }}
           >
             <ListItemIcon
               sx={{
-                color: isSelected(item.path) ? '#FFFFFF' : '#FFFFFF',
+                color: '#FFFFFF',
               }}
             >
               {item.icon}
@@ -99,17 +107,17 @@ const Sidebar = () => {
               padding: '8px 16px',
               borderRadius: '8px',
               backgroundColor: isSelected('/settings') ? '#333' : 'transparent',
-              color: isSelected('/settings') ? '#FFFFFF' : '#FFFFFF',
+              color: '#FFFFFF',
               marginBottom: '12px', // Add spacing between items
               '&:hover': {
-                backgroundColor: '#555', // Hover effect
+                backgroundColor: isSelected('/settings') ? '#333' : '#555', // Maintain selected background
               },
               transition: 'background-color 0.3s ease',
             }}
           >
             <ListItemIcon
               sx={{
-                color: isSelected('/settings') ? '#FFFFFF' : '#FFFFFF',
+                color: '#FFFFFF',
               }}
             >
               <SettingsIcon />
@@ -123,3 +131,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+  

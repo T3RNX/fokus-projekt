@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import Sidebar from '../components/Sidebar'; // Import the Sidebar component
+import Sidebar from '../components/Sidebar';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -12,10 +12,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           flexGrow: 1,
           p: 3,
           mt: 2,
-          ml: '250px', // Match sidebar width
-          width: `calc(100% - 250px)`, // Adjust for sidebar
+          ml: '50px', 
+          width: `calc(100% - 200px)`,
           minHeight: '100vh',
-          backgroundColor: '#121212'
+          backgroundColor: '#121212',
         }}
       >
         {children}

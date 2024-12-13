@@ -1,5 +1,5 @@
 export async function getAllDogs() {
-    const response = await fetch('https://localhost:7202/Dog'); // Replace with your API URL
+    const response = await fetch('https://localhost:7202/Dog');
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
@@ -10,5 +10,7 @@ export interface Dog {
     name: string;
     age: number;
     breed: string;
+    weight: string;
     owner: string;
-  }
+}
+
