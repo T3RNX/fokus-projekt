@@ -13,6 +13,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import HealingIcon from '@mui/icons-material/Healing';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useLocation } from 'react-router-dom';
+import React from 'react';
 
 const Sidebar = () => {
   const location = useLocation();

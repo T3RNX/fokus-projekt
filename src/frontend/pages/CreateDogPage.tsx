@@ -26,7 +26,6 @@ const CreateDogPage = () => {
     console.log("New Dog Data:", formData);
     navigate("/dogs");
   };
-
   return (
     <Box
       sx={{
