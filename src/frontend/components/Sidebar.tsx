@@ -18,21 +18,19 @@ import React from 'react';
 const Sidebar = () => {
   const location = useLocation();
 
-  // Function to determine if a menu item is selected
   const isSelected = (path: string) => location.pathname === path;
 
   return (
     <Box
       sx={{
-        width: 250, // Sidebar width
-        height: '100vh', // Full screen height
-        backgroundColor: '#1E1E1E', // Dark background color
-        color: '#FFFFFF', // White text color
+        width: 250,
+        height: '100vh',
+        backgroundColor: '#1E1E1E',
+        color: '#FFFFFF',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Logo Section */}
       <Box
         sx={{
           display: 'flex',
@@ -48,14 +46,13 @@ const Sidebar = () => {
             fontWeight: 'bold',
             display: 'flex',
             alignItems: 'center',
-            gap: 1, // Space between text and icon
+            gap: 1,
           }}
         >
           <PetsIcon /> bdogs
         </Typography>
       </Box>
 
-      {/* Navigation Menu */}
       <List sx={{ marginTop: 2 }}>
         {[
           { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
@@ -75,9 +72,9 @@ const Sidebar = () => {
               borderRadius: '8px',
               backgroundColor: isSelected(item.path) ? '#333' : 'transparent',
               color: '#FFFFFF',
-              marginBottom: '12px', // Add spacing between items
+              marginBottom: '12px',
               '&:hover': {
-                backgroundColor: isSelected(item.path) ? '#333' : '#555', // Maintain selected background
+                backgroundColor: isSelected(item.path) ? '#333' : '#555',
               },
               transition: 'background-color 0.3s ease',
             }}
@@ -109,9 +106,9 @@ const Sidebar = () => {
               borderRadius: '8px',
               backgroundColor: isSelected('/settings') ? '#333' : 'transparent',
               color: '#FFFFFF',
-              marginBottom: '12px', // Add spacing between items
+              marginBottom: '12px',
               '&:hover': {
-                backgroundColor: isSelected('/settings') ? '#333' : '#555', // Maintain selected background
+                backgroundColor: isSelected('/settings') ? '#333' : '#555',
               },
               transition: 'background-color 0.3s ease',
             }}

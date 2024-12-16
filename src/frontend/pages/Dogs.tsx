@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import AddButton from '../components/AddButton';
-import DogCard from '../components/DogCard';
-import { Dog, getAllDogs } from '../API/Dog';
-import React from 'react';
+import { useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import AddButton from "../components/AddButton";
+import DogCard from "../components/DogCard";
+import { Dog, getAllDogs } from "../API/Dog";
+import React from "react";
 
 const Dogs = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const Dogs = () => {
         const fetchedDogs = await getAllDogs();
         setDogs(fetchedDogs);
       } catch (error) {
-        console.error('Error fetching dogs:', error);
+        console.error("Error fetching dogs:", error);
       }
     };
 
@@ -24,42 +24,48 @@ const Dogs = () => {
   }, []);
 
   const handleAddClick = () => {
-    navigate('/dogs/create');
+    navigate("/dogs/create");
   };
 
   return (
-    <Box 
-      sx={{ 
-        position: 'relative',
-        padding: 2,
-        height: '100%',
-        overflow: 'auto', // Enable scrolling
-        maxHeight: 'calc(100vh - 32px)', // Account for padding
+    <Box
+      sx={{
+        position: "relative",
+        height: "100vh",
+        overflow: "auto",
+        backgroundColor: "#121212",
+        marginTop: '-20px'
       }}
     >
       <Box
         sx={{
-          position: 'sticky', // Change to sticky
+          position: "sticky",
           top: 0,
-          right: 16,
-          zIndex: 1, // Ensure button stays on top
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 2,
-          backgroundColor: '#121212', // Match background color
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          padding: "20px 24px",
+          backgroundColor: "#121212",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <Typography variant="h4">
+        <Typography variant="h4" sx={{ color: "#ffffff" }}>
           Hunde
         </Typography>
         <AddButton onClick={handleAddClick} />
       </Box>
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap',
-          gap: 2, // Add consistent spacing between cards
+
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
+          padding: 2,
+          marginTop: 0,
         }}
       >
         {dogs.map((dog, index) => (

@@ -1,30 +1,37 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { createDog } from "../API/Dog";
 
 const CreateDogPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     age: "",
-    breed: "",
+    race: "",
     weight: "",
-    owner: "",
+    ownerID: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    const existingDogs = JSON.parse(localStorage.getItem('dogs') || '[]');
-    
-    const newDogs = [...existingDogs, formData];
-    
-    localStorage.setItem('dogs', JSON.stringify(newDogs));
-    
-    console.log("New Dog Data:", formData);
-    navigate("/dogs");
+  const handleSubmit = async () => {
+    try {
+      const dogData = {
+        name: formData.name,
+        age: parseInt(formData.age, 10),
+        race: formData.race,
+        weight: parseFloat(formData.weight),
+        ownerID: parseInt(formData.ownerID, 10),
+      };
+  
+      await createDog(dogData);
+      navigate("/dogs");
+    } catch (error) {
+      console.error("Error creating dog:", error);
+    }
   };
   return (
     <Box
@@ -43,7 +50,7 @@ const CreateDogPage = () => {
         Hund Erstellen
       </Typography>
       <Box component="form" sx={{ width: "100%", maxWidth: 400 }}>
-      <TextField
+        <TextField
           variant="outlined"
           label="Name"
           name="name"
@@ -54,18 +61,19 @@ const CreateDogPage = () => {
           sx={{
             backgroundColor: "#1E1E1E",
             borderRadius: 1,
-            '& .MuiInputLabel-root': {
-              color: '#FFFFFF'
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
             },
-            '& .MuiOutlinedInput-root': {
-              color: '#FFFFFF'
-            }
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
           }}
         />
         <TextField
           variant="outlined"
           label="Alter"
           name="age"
+          type="number"
           fullWidth
           margin="normal"
           value={formData.age}
@@ -73,18 +81,19 @@ const CreateDogPage = () => {
           sx={{
             backgroundColor: "#1E1E1E",
             borderRadius: 1,
-            '& .MuiInputLabel-root': {
-              color: '#FFFFFF'
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
             },
-            '& .MuiOutlinedInput-root': {
-              color: '#FFFFFF'
-            }
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
           }}
         />
         <TextField
           variant="outlined"
           label="Gewicht"
           name="weight"
+          type="number"
           fullWidth
           margin="normal"
           value={formData.weight}
@@ -92,31 +101,51 @@ const CreateDogPage = () => {
           sx={{
             backgroundColor: "#1E1E1E",
             borderRadius: 1,
-            '& .MuiInputLabel-root': {
-              color: '#FFFFFF'
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
             },
-            '& .MuiOutlinedInput-root': {
-              color: '#FFFFFF'
-            }
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
           }}
         />
         <TextField
           variant="outlined"
-          label="Besitzer"
-          name="owner"
+          label="Rasse"
+          name="race"
           fullWidth
           margin="normal"
-          value={formData.owner}
+          value={formData.race}
           onChange={handleChange}
           sx={{
             backgroundColor: "#1E1E1E",
             borderRadius: 1,
-            '& .MuiInputLabel-root': {
-              color: '#FFFFFF'
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
             },
-            '& .MuiOutlinedInput-root': {
-              color: '#FFFFFF'
-            }
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
+          }}
+        />
+        <TextField
+          variant="outlined"
+          label="Besitzer ID"
+          name="ownerID"
+          type="number"
+          fullWidth
+          margin="normal"
+          value={formData.ownerID}
+          onChange={handleChange}
+          sx={{
+            backgroundColor: "#1E1E1E",
+            borderRadius: 1,
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
+            },
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
           }}
         />
         <Box
