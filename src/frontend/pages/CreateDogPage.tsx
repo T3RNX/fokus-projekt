@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { createDog } from "../API/Dog";
 
@@ -12,6 +12,7 @@ const CreateDogPage = () => {
     weight: "",
     ownerID: "",
   });
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,11 +29,15 @@ const CreateDogPage = () => {
       };
   
       await createDog(dogData);
-      navigate("/dogs");
+      setSuccessMessage("Dog created successfully!");
+      setTimeout(() => {
+        navigate("/dogs");
+      }, 2000);
     } catch (error) {
       console.error("Error creating dog:", error);
     }
   };
+
   return (
     <Box
       sx={{
@@ -49,6 +54,11 @@ const CreateDogPage = () => {
       <Typography variant="h4" gutterBottom>
         Hund Erstellen
       </Typography>
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
       <Box component="form" sx={{ width: "100%", maxWidth: 400 }}>
         <TextField
           variant="outlined"

@@ -10,21 +10,25 @@ const Dogs = () => {
   const navigate = useNavigate();
   const [dogs, setDogs] = useState<Dog[]>([]);
 
-  useEffect(() => {
-    const fetchDogs = async () => {
-      try {
-        const fetchedDogs = await getAllDogs();
-        setDogs(fetchedDogs);
-      } catch (error) {
-        console.error("Error fetching dogs:", error);
-      }
-    };
+  const fetchDogs = async () => {
+    try {
+      const fetchedDogs = await getAllDogs();
+      setDogs(fetchedDogs);
+    } catch (error) {
+      console.error("Error fetching dogs:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchDogs();
   }, []);
 
   const handleAddClick = () => {
     navigate("/dogs/create");
+  };
+
+  const handleDeleteDog = () => {
+    fetchDogs();
   };
 
   return (
@@ -68,8 +72,8 @@ const Dogs = () => {
           marginTop: 0,
         }}
       >
-        {dogs.map((dog, index) => (
-          <DogCard key={index} {...dog} />
+        {dogs.map((dog) => (
+          <DogCard key={dog.id} {...dog} onDelete={handleDeleteDog} />
         ))}
       </Box>
     </Box>
