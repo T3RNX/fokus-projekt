@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Typography, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { createDog } from "../API/Dog";
+import { createDog, CreateDogDTO } from "../API/Dog";
 
 const CreateDogPage = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const CreateDogPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const dogData = {
+      const dogData: CreateDogDTO = {
         name: formData.name,
         age: parseInt(formData.age, 10),
         race: formData.race,
@@ -34,8 +34,8 @@ const CreateDogPage = () => {
         navigate("/dogs");
       }, 2000);
     } catch (error) {
-      console.error("Error creating dog:", error);
-    }
+    console.error("Error creating dog:", error);
+  }
   };
 
   return (

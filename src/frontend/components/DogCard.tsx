@@ -8,12 +8,18 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Dog, deleteDog } from "../API/Dog";
+import { useNavigate } from "react-router-dom";
 
 interface DogCardProps extends Dog {
   onDelete?: () => void;
 }
 
 const DogCard: React.FC<DogCardProps> = ({ dogID, name, age, onDelete }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/dogs/${dogID}`);
+  };
   const handleDelete = async () => {
     try {
       if (dogID !== undefined) {
@@ -31,8 +37,10 @@ const DogCard: React.FC<DogCardProps> = ({ dogID, name, age, onDelete }) => {
     }
   };
 
+
   return (
     <Card
+    onClick={handleClick}
       sx={{
         minWidth: 300,
         maxWidth: 300,
@@ -40,6 +48,7 @@ const DogCard: React.FC<DogCardProps> = ({ dogID, name, age, onDelete }) => {
         textAlign: "center",
         boxShadow: 3,
         position: "relative",
+        cursor: 'pointer'
       }}
     >
       <IconButton

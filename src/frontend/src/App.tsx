@@ -6,6 +6,7 @@ import Treatments from "../pages/Treatments";
 import Dashboard from "../pages/Dashboard";
 import Settings from "../pages/Settings";
 import CreateDogPage from "../pages/CreateDogPage";
+import DogDetailsPage from "../pages/DogDetailsPage";
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
           <Route path="/dogs" element={<Dogs />} />
           <Route path="/owner" element={<Owner />} />
           <Route path="/dogs/create" element={<CreateDogPage />} />
+          <Route path="/dogs/:dogID" element={<DogDetailsPage />} />
           <Route path="/treatments" element={<Treatments />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/" element={<Dashboard />} />
