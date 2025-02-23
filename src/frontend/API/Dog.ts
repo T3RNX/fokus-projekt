@@ -45,7 +45,7 @@ export async function createDog(dog: Dog) {
   }
 
 export interface Dog {
-    id: number;
+    dogID: number;
     name: string;
     age: number;
     race: string;

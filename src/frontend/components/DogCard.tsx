@@ -13,11 +13,11 @@ interface DogCardProps extends Dog {
   onDelete?: () => void;
 }
 
-const DogCard: React.FC<DogCardProps> = ({ id, name, age, onDelete }) => {
+const DogCard: React.FC<DogCardProps> = ({ dogID, name, age, onDelete }) => {
   const handleDelete = async () => {
     try {
-      if (id !== undefined) {
-        await deleteDog(id);
+      if (dogID !== undefined) {
+        await deleteDog(dogID);
         if (onDelete) {
           onDelete();
         }

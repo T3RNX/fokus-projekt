@@ -38,7 +38,7 @@ const Dogs = () => {
         height: "100vh",
         overflow: "auto",
         backgroundColor: "#121212",
-        marginTop: '-20px'
+        marginTop: "-20px",
       }}
     >
       <Box
@@ -73,7 +73,7 @@ const Dogs = () => {
         }}
       >
         {dogs.map((dog) => (
-          <DogCard key={dog.id} {...dog} onDelete={handleDeleteDog} />
+          <DogCard key={dog.dogID} {...dog} onDelete={handleDeleteDog} />
         ))}
       </Box>
     </Box>
