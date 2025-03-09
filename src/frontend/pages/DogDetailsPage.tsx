@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -8,8 +8,8 @@ import {
   Paper,
   Grid,
   Container,
-} from '@mui/material';
-import { Dog, getDogById } from '../API/Dog';
+} from "@mui/material";
+import { Dog, getDogById, deleteDog, getImageUrl } from "../API/Dog";
 
 const DogDetailsPage = () => {
   const { dogID } = useParams();
@@ -33,177 +33,195 @@ const DogDetailsPage = () => {
     fetchDog();
   }, [dogID]);
 
+  const handleDelete = async () => {
+    if (!dogID) return;
+    try {
+      await deleteDog(parseInt(dogID, 10));
+      navigate("/dogs");
+    } catch (err) {
+      console.error("Error deleting dog:", err);
+    }
+  };
+
   if (loading) {
     return <Typography>Loading...</Typography>;
   }
 
   return (
-      <Paper elevation={3} sx={{ p: 4, bgcolor: '#121212', color: 'white' }}>
-        <Grid container spacing={4}>
-          {/* Image Section */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ width: '100%', mb: 3 }}>
-              <img
-                src={dog?.imageUrl || "https://via.placeholder.com/400x300"}
-                alt="dog"
-                style={{ width: '100%', borderRadius: '10px' }}
-              />
-            </Box>
-          </Grid>
-
-          {/* Details Section */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Name"
-                value={dog?.name || ''}
-                variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label="Alter"
-                value={dog?.age || ''}
-                variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label="Rasse"
-                value={dog?.race || ''}
-                variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label="Gewicht"
-                value={dog?.weight || ''}
-                variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label="Besitzer ID"
-                value={dog?.ownerID || ''}
-                variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-              />
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: '#ff6c3e',
-                  '&:hover': { bgcolor: '#ff5722' },
-                  alignSelf: 'flex-start',
-                }}
-              >
-                Edit
-              </Button>
-            </Box>
-          </Grid>
-
-          {/* Description Section */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Beschreibung"
-              multiline
-              rows={4}
-              value={dog?.description || ''}
-              variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
+    <Paper elevation={3} sx={{ p: 4, bgcolor: "#121212", color: "white" }}>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Box sx={{ width: "100%", mb: 3 }}>
+            <img
+              src={getImageUrl(dog?.imagePath)}
+              alt="dog"
+              style={{ width: "100%", borderRadius: "10px" }}
             />
-          </Grid>
-
-          {/* Treatments Section */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Behandlungen"
-              multiline
-              rows={4}
-              variant="outlined"
-                sx={{
-                  backgroundColor: "#1E1E1E",
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: "#FFFFFF",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    color: "#FFFFFF",
-                  },
-                }}
-            />
-          </Grid>
+          </Box>
         </Grid>
 
-        <Box sx={{ mt: 4 }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate(-1)}
+        <Grid item xs={12} md={6}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Name"
+              value={dog?.name || ""}
+              variant="outlined"
+              sx={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: "#FFFFFF",
+                },
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Alter"
+              value={dog?.age || ""}
+              variant="outlined"
+              sx={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: "#FFFFFF",
+                },
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Rasse"
+              value={dog?.race || ""}
+              variant="outlined"
+              sx={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: "#FFFFFF",
+                },
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Gewicht"
+              value={dog?.weight || ""}
+              variant="outlined"
+              sx={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: "#FFFFFF",
+                },
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Besitzer ID"
+              value={dog?.ownerID || ""}
+              variant="outlined"
+              disabled
+              sx={{
+                backgroundColor: "#1E1E1E",
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: "#FFFFFF",
+                },
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                },
+              }}
+            />
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: "#ff6c3e",
+                "&:hover": { bgcolor: "#ff5722" },
+                alignSelf: "flex-start",
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: "#ff6c3e",
+                "&:hover": { bgcolor: "#ff5722" },
+                alignSelf: "flex-start",
+              }}
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Beschreibung"
+            multiline
+            rows={4}
+            value={dog?.description || ""}
+            variant="outlined"
             sx={{
-              bgcolor: '#ff6c3e',
-              '&:hover': { bgcolor: '#ff5722' },
+              backgroundColor: "#1E1E1E",
+              borderRadius: 1,
+              "& .MuiInputLabel-root": {
+                color: "#FFFFFF",
+              },
+              "& .MuiOutlinedInput-root": {
+                color: "#FFFFFF",
+              },
             }}
-          >
-            Zurück
-          </Button>
-        </Box>
-      </Paper>
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Behandlungen"
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{
+              backgroundColor: "#1E1E1E",
+              borderRadius: 1,
+              "& .MuiInputLabel-root": {
+                color: "#FFFFFF",
+              },
+              "& .MuiOutlinedInput-root": {
+                color: "#FFFFFF",
+              },
+            }}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 4 }}>
+        <Button
+          variant="contained"
+          onClick={() => navigate(-1)}
+          sx={{
+            bgcolor: "#ff6c3e",
+            "&:hover": { bgcolor: "#ff5722" },
+          }}
+        >
+          Zurück
+        </Button>
+      </Box>
+    </Paper>
   );
 };
 

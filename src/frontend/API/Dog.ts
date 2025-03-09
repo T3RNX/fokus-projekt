@@ -14,20 +14,22 @@ export async function getDogById(id: number) {
   return await response.json();
 }
 
-export async function createDog(dog: Dog) {
+export async function createDog(formData: FormData) {
   const response = await fetch("https://localhost:7202/Dog", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(dog),
+      method: "POST",
+      body: formData,
   });
 
   if (!response.ok) {
-    throw new Error("Network response was not ok");
+      throw new Error("Network response was not ok");
   }
 
   return await response.json();
+}
+
+export function getImageUrl(imagePath: string | null | undefined) {
+  if (!imagePath) return "https://via.placeholder.com/400x300";
+  return `https://localhost:7202/Dog/image/${imagePath}`;
 }
 
 export async function deleteDog(id: number) {
@@ -52,6 +54,7 @@ export async function deleteDog(id: number) {
 }
 
 export interface CreateDogDTO {
+  dogID: number;
   name: string;
   age: number;
   race: string;
@@ -62,5 +65,5 @@ export interface CreateDogDTO {
 export interface Dog extends CreateDogDTO {
   dogID: number;
   description?: string;
-  imageUrl?: string;
+  imagePath?: string;
 }

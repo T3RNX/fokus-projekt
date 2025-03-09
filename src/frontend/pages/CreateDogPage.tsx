@@ -3,39 +3,56 @@ import { Box, Button, TextField, Typography, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { createDog, CreateDogDTO } from "../API/Dog";
 
+interface FormValues {
+  name: string;
+  age: string;
+  race: string;
+  weight: string;
+  ownerID: string;
+}
+
 const CreateDogPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [formValues, setFormValues] = useState<FormValues>({
     name: "",
     age: "",
     race: "",
     weight: "",
     ownerID: "",
   });
-  const [successMessage, setSuccessMessage] = useState("");
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+      setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormValues({ ...formValues, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
     try {
-      const dogData: CreateDogDTO = {
-        name: formData.name,
-        age: parseInt(formData.age, 10),
-        race: formData.race,
-        weight: parseFloat(formData.weight),
-        ownerID: parseInt(formData.ownerID, 10),
-      };
-  
-      await createDog(dogData);
-      setSuccessMessage("Dog created successfully!");
-      setTimeout(() => {
-        navigate("/dogs");
-      }, 2000);
+      const formData = new FormData();
+      formData.append("name", formValues.name);
+      formData.append("age", formValues.age);
+      formData.append("race", formValues.race);
+      formData.append("weight", formValues.weight);
+      formData.append("ownerID", formValues.ownerID);
+
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
+      await createDog(formData);
+      navigate("/dogs");
     } catch (error) {
-    console.error("Error creating dog:", error);
-  }
+      console.error("Error creating dog:", error);
+    }
   };
 
   return (
@@ -59,6 +76,30 @@ const CreateDogPage = () => {
           {successMessage}
         </Alert>
       )}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        style={{ display: "none" }}
+        id="image-upload"
+      />
+      <label htmlFor="image-upload">
+        <Button component="span" variant="contained" sx={{ mt: 2, mb: 2 }}>
+          Upload Image
+        </Button>
+      </label>
+      {previewUrl && (
+        <img
+          src={previewUrl}
+          alt="Preview"
+          style={{
+            width: "100%",
+            maxHeight: "300px",
+            objectFit: "cover",
+            marginBottom: "20px",
+          }}
+        />
+      )}
       <Box component="form" sx={{ width: "100%", maxWidth: 400 }}>
         <TextField
           variant="outlined"
@@ -66,7 +107,7 @@ const CreateDogPage = () => {
           name="name"
           fullWidth
           margin="normal"
-          value={formData.name}
+          value={formValues.name}
           onChange={handleChange}
           sx={{
             backgroundColor: "#1E1E1E",
@@ -86,7 +127,26 @@ const CreateDogPage = () => {
           type="number"
           fullWidth
           margin="normal"
-          value={formData.age}
+          value={formValues.age}
+          onChange={handleChange}
+          sx={{
+            backgroundColor: "#1E1E1E",
+            borderRadius: 1,
+            "& .MuiInputLabel-root": {
+              color: "#FFFFFF",
+            },
+            "& .MuiOutlinedInput-root": {
+              color: "#FFFFFF",
+            },
+          }}
+        />
+        <TextField
+          variant="outlined"
+          label="Rasse"
+          name="race"
+          fullWidth
+          margin="normal"
+          value={formValues.race}
           onChange={handleChange}
           sx={{
             backgroundColor: "#1E1E1E",
@@ -106,26 +166,7 @@ const CreateDogPage = () => {
           type="number"
           fullWidth
           margin="normal"
-          value={formData.weight}
-          onChange={handleChange}
-          sx={{
-            backgroundColor: "#1E1E1E",
-            borderRadius: 1,
-            "& .MuiInputLabel-root": {
-              color: "#FFFFFF",
-            },
-            "& .MuiOutlinedInput-root": {
-              color: "#FFFFFF",
-            },
-          }}
-        />
-        <TextField
-          variant="outlined"
-          label="Rasse"
-          name="race"
-          fullWidth
-          margin="normal"
-          value={formData.race}
+          value={formValues.weight}
           onChange={handleChange}
           sx={{
             backgroundColor: "#1E1E1E",
@@ -145,7 +186,7 @@ const CreateDogPage = () => {
           type="number"
           fullWidth
           margin="normal"
-          value={formData.ownerID}
+          value={formValues.ownerID}
           onChange={handleChange}
           sx={{
             backgroundColor: "#1E1E1E",

@@ -34,3 +34,6 @@ dist-ssr
 # Build output directories
 bin/
 obj/
+
+# Ignore uploaded images
+backend/Images/
