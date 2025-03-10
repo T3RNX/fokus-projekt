@@ -53,7 +53,7 @@ const DogDetailsPage = () => {
         <Grid item xs={12} md={6}>
           <Box sx={{ width: "100%", mb: 3 }}>
             <img
-              src={getImageUrl(dog?.imagePath)}
+              src={getImageUrl(dog?.dogID)}
               alt="dog"
               style={{ width: "100%", borderRadius: "10px" }}
             />

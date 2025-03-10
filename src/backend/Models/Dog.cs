@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BDogs.Models
 {
@@ -11,7 +12,11 @@ namespace BDogs.Models
         public required string Race { get; set; }
         public double Weight { get; set; }
         public int OwnerID { get; set; }
-        public string? ImagePath { get; set; }
+
+        [Column(TypeName = "varbinary(max)")]
+        public byte[]? ImageData { get; set; }
+        
+        public string? ImageContentType { get; set; }
 
     }
 }

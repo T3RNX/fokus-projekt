@@ -28,7 +28,12 @@ const DogCard: React.FC<DogCardProps> = ({ dogID, name, age, imagePath }) => {
         cursor: "pointer",
       }}
     >
-      <CardMedia component="img" height="200" image={getImageUrl(imagePath)} />
+      <CardMedia
+        component="img"
+        height="200"
+        image={getImageUrl(dogID)}
+        alt={name}
+      />
       <CardContent sx={{ backgroundColor: "#f5f5f5" }}>
         <Typography variant="h6" component="div" fontWeight="bold">
           {name.toUpperCase()}, {age} JAHRE

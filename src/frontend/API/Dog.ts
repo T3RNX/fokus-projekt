@@ -27,9 +27,9 @@ export async function createDog(formData: FormData) {
   return await response.json();
 }
 
-export function getImageUrl(imagePath: string | null | undefined) {
-  if (!imagePath) return "https://via.placeholder.com/400x300";
-  return `https://localhost:7202/Dog/image/${imagePath}`;
+export function getImageUrl(dogId: number | null | undefined) {
+  if (!dogId) return "https://via.placeholder.com/400x300";
+  return `https://localhost:7202/Dog/image/${dogId}`;
 }
 
 export async function deleteDog(id: number) {

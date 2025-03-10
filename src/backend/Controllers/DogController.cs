@@ -11,14 +11,12 @@ namespace BDogs.Controllers
     public class DogController : ControllerBase
     {
         private readonly DogDbContext _context;
-        private readonly ImageService _imageService;
         private readonly ILogger<DogController> _logger;
 
-        public DogController(DogDbContext context, ILogger<DogController> logger, ImageService imageService)
+        public DogController(DogDbContext context, ILogger<DogController> logger)
         {
             _context = context;
             _logger = logger;
-            _imageService = imageService;
         }
 
         [HttpGet]
@@ -54,34 +52,27 @@ namespace BDogs.Controllers
 
                 if (image != null)
                 {
-                    // Validate file type
                     var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
                     if (!allowedTypes.Contains(image.ContentType.ToLower()))
                     {
                         return BadRequest("Invalid file type. Only JPG, PNG and GIF are allowed.");
                     }
 
-                    // Validate file size (e.g. max 5MB)
                     if (image.Length > 5 * 1024 * 1024)
                     {
                         return BadRequest("File size too large. Maximum size is 5MB.");
                     }
 
-                    // Save image to file system
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
-                    var path = Path.Combine(_imageService.GetImageDirectory(), fileName);
-
-                    using (var stream = new FileStream(path, FileMode.Create))
+                    using (var ms = new MemoryStream())
                     {
-                        await image.CopyToAsync(stream);
+                        await image.CopyToAsync(ms);
+                        dog.ImageData = ms.ToArray();
+                        dog.ImageContentType = image.ContentType;
                     }
-
-                    dog.ImagePath = fileName;
                 }
 
                 _context.Dogs.Add(dog);
                 await _context.SaveChangesAsync();
-
                 return Ok(dog);
             }
             catch (Exception ex)
@@ -91,26 +82,15 @@ namespace BDogs.Controllers
             }
         }
 
-        [HttpGet("image/{filename}")]
-        public IActionResult GetImage(string filename)
+        [HttpGet("image/{id}")]
+        public async Task<IActionResult> GetImage(int id)
         {
-            var path = Path.Combine(_imageService.GetImageDirectory(), filename);
-            if (!System.IO.File.Exists(path))
-                return NotFound();
-
-            var contentType = GetContentType(Path.GetExtension(filename));
-            return PhysicalFile(path, contentType);
-        }
-
-        private string GetContentType(string extension)
-        {
-            return extension.ToLower() switch
+            var dog = await _context.Dogs.FindAsync(id);
+            if (dog?.ImageData == null)
             {
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".gif" => "image/gif",
-                _ => "application/octet-stream"
-            };
+                return NotFound();
+            }
+            return File(dog.ImageData, dog.ImageContentType ?? "image/png");
         }
 
         [HttpPut("{id}")]
@@ -130,26 +110,22 @@ namespace BDogs.Controllers
 
             if (image != null)
             {
-                // Delete old image if exists
-                if (!string.IsNullOrEmpty(existingDog.ImagePath))
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                if (!allowedTypes.Contains(image.ContentType.ToLower()))
                 {
-                    var oldImagePath = Path.Combine(_imageService.GetImageDirectory(), existingDog.ImagePath);
-                    if (System.IO.File.Exists(oldImagePath))
-                    {
-                        System.IO.File.Delete(oldImagePath);
-                    }
+                    return BadRequest("Invalid file type. Only JPG, PNG and GIF are allowed.");
+                }
+                if (image.Length > 5 * 1024 * 1024)
+                {
+                    return BadRequest("File size too large. Maximum size is 5MB.");
                 }
 
-                // Save new image
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
-                var path = Path.Combine(_imageService.GetImageDirectory(), fileName);
-
-                using (var stream = new FileStream(path, FileMode.Create))
+                using (var ms = new MemoryStream())
                 {
-                    await image.CopyToAsync(stream);
+                    await image.CopyToAsync(ms);
+                    existingDog.ImageData = ms.ToArray();
+                    existingDog.ImageContentType = image.ContentType;
                 }
-
-                existingDog.ImagePath = fileName;
             }
 
             await _context.SaveChangesAsync();
@@ -163,16 +139,6 @@ namespace BDogs.Controllers
             if (deleteDog == null)
             {
                 return NotFound();
-            }
-
-            // Delete the image file if it exists
-            if (!string.IsNullOrEmpty(deleteDog.ImagePath))
-            {
-                var imagePath = Path.Combine(_imageService.GetImageDirectory(), deleteDog.ImagePath);
-                if (System.IO.File.Exists(imagePath))
-                {
-                    System.IO.File.Delete(imagePath);
-                }
             }
 
             _context.Dogs.Remove(deleteDog);
