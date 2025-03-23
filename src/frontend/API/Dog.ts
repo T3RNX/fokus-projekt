@@ -16,12 +16,12 @@ export async function getDogById(id: number) {
 
 export async function createDog(formData: FormData) {
   const response = await fetch("https://localhost:7202/Dog", {
-      method: "POST",
-      body: formData,
+    method: "POST",
+    body: formData,
   });
 
   if (!response.ok) {
-      throw new Error("Network response was not ok");
+    throw new Error("Network response was not ok");
   }
 
   return await response.json();

@@ -132,6 +132,17 @@ namespace BDogs.Controllers
             return Ok(existingDog);
         }
 
+        [HttpPut("{id}/description")]
+        public async Task<IActionResult> UpdateDescription(int id, [FromBody] DescriptionUpdateDto dto)
+        {
+            var dog = await _context.Dogs.FindAsync(id);
+            if (dog == null) return NotFound();
+
+            dog.Description = dto.Description;
+            await _context.SaveChangesAsync();
+            return Ok(dog);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDog(int id)
         {
