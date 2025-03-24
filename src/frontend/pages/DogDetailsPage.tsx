@@ -102,9 +102,7 @@ const DogDetailsPage = () => {
           gap: 4,
         }}
       >
-        {/* Top Section: Image (left), Fields (right), Edit button in top-right */}
         <Grid container spacing={2}>
-          {/* Image on the left with fixed width & height */}
           <Grid item xs={12} md={4}>
             <Box
               sx={{
@@ -148,7 +146,6 @@ const DogDetailsPage = () => {
             </Box>
           </Grid>
 
-          {/* Fields on the right + Edit button top-right */}
           <Grid item xs={6} md={8}>
             <Box
               sx={{
@@ -219,7 +216,6 @@ const DogDetailsPage = () => {
           </Grid>
         </Grid>
 
-        {/* Middle Section: Description & Treatments stacked */}
         <Box>
           <TextField
             label="Beschreibung"
@@ -294,7 +290,6 @@ const DogDetailsPage = () => {
           />
         </Box>
 
-        {/* Bottom: Back button (left) & optionally Delete button if you want it */}
         <Box sx={{ display: "flex", justifyContent: "flex-start", gap: 2 }}>
           <Button
             variant="contained"
@@ -307,7 +302,6 @@ const DogDetailsPage = () => {
           >
             ZURÜCK
           </Button>
-          {/* Uncomment if you'd like a Delete button at the bottom */}
           <Button
             variant="contained"
             color="error"
@@ -322,18 +316,15 @@ const DogDetailsPage = () => {
   );
 };
 
-// Shared styling for read-only TextFields
 const textFieldStyle = {
   "& .MuiOutlinedInput-root": {
     bgcolor: "#2c2c2c",
     color: "#fff",
     borderRadius: 1,
     "& fieldset": {
-      // Add this to target the outline
       borderColor: "#444",
     },
     "&.Mui-disabled": {
-      // Combine disabled styles
       color: "#fff",
       WebkitTextFillColor: "#fff",
       "& fieldset": {
@@ -341,7 +332,6 @@ const textFieldStyle = {
       },
     },
     "& input": {
-      // Target the input directly
       color: "#fff",
       "&.Mui-disabled": {
         WebkitTextFillColor: "#fff",
