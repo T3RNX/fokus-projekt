@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BDogs.Models;
-using BDogs.Services;
 using Microsoft.Extensions.Logging;
 
 namespace BDogs.Controllers
@@ -41,6 +40,8 @@ namespace BDogs.Controllers
         {
             try
             {
+                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
                 var dog = new Dog
                 {
                     Name = dogDto.Name,
@@ -52,33 +53,93 @@ namespace BDogs.Controllers
 
                 if (image != null)
                 {
-                    var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
-                    if (!allowedTypes.Contains(image.ContentType.ToLower()))
+                    try
                     {
-                        return BadRequest("Invalid file type. Only JPG, PNG and GIF are allowed.");
-                    }
+                        var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                        if (!allowedTypes.Contains(image.ContentType.ToLower()))
+                        {
+                            return BadRequest("Invalid file type. Only JPG, PNG and GIF are allowed.");
+                        }
+                        if (image.Length > 2 * 1024 * 1024) // 2MB limit
+                        {
+                            return BadRequest("File size too large. Maximum size is 2MB.");
+                        }
 
-                    if (image.Length > 5 * 1024 * 1024)
-                    {
-                        return BadRequest("File size too large. Maximum size is 5MB.");
-                    }
+                        using (var ms = new MemoryStream())
+                        {
+                            await image.CopyToAsync(ms, timeoutCts.Token);
+                            var imageBytes = ms.ToArray();
+                            _logger.LogInformation($"Image processed. Size: {imageBytes.Length} bytes");
 
-                    using (var ms = new MemoryStream())
+                            dog.ImageData = imageBytes;
+                            dog.ImageContentType = image.ContentType;
+                        }
+                    }
+                    catch (OperationCanceledException)
                     {
-                        await image.CopyToAsync(ms);
-                        dog.ImageData = ms.ToArray();
-                        dog.ImageContentType = image.ContentType;
+                        _logger.LogError("Image processing timed out");
+                        return StatusCode(408, "Request timeout while processing image");
+                    }
+                    catch (Exception imageEx)
+                    {
+                        _logger.LogError(imageEx, "Error processing image: {Message}", imageEx.Message);
+                        return StatusCode(500, "Error processing image: " + imageEx.Message);
                     }
                 }
 
-                _context.Dogs.Add(dog);
-                await _context.SaveChangesAsync();
-                return Ok(dog);
+                try
+                {
+                    _context.Dogs.Add(dog);
+                    await _context.SaveChangesAsync(timeoutCts.Token);
+
+                    _logger.LogInformation($"Dog created successfully with ID: {dog.DogID}");
+                    return Ok(dog);
+                }
+                catch (Exception dbEx)
+                {
+                    _logger.LogError(dbEx, "Database error when saving dog: {Message}", dbEx.Message);
+                    return StatusCode(500, "Database error: " + dbEx.Message);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating dog");
-                return StatusCode(500, "An error occurred while creating the dog");
+                _logger.LogError(ex, "Unhandled exception in CreateDog: {Message}", ex.Message);
+                return StatusCode(500, "An unexpected error occurred: " + ex.Message);
+            }
+        }
+
+        [HttpPost("upload-image/{id}")]
+        public async Task<IActionResult> UploadImage(int id, IFormFile file)
+        {
+            try
+            {
+                var dog = await _context.Dogs.FindAsync(id);
+                if (dog == null) return NotFound();
+
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                {
+                    return BadRequest("Invalid file type. Only JPG, PNG and GIF are allowed.");
+                }
+
+                if (file.Length > 5 * 1024 * 1024) // 5MB limit
+                {
+                    return BadRequest("File size too large. Maximum size is 5MB.");
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    dog.ImageData = memoryStream.ToArray();
+                    dog.ImageContentType = file.ContentType;
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -86,11 +147,10 @@ namespace BDogs.Controllers
         public async Task<IActionResult> GetImage(int id)
         {
             var dog = await _context.Dogs.FindAsync(id);
-            if (dog?.ImageData == null)
-            {
+            if (dog == null || dog.ImageData == null)
                 return NotFound();
-            }
-            return File(dog.ImageData, dog.ImageContentType ?? "image/png");
+
+            return File(dog.ImageData, dog.ImageContentType ?? "application/octet-stream");
         }
 
         [HttpPut("{id}")]
