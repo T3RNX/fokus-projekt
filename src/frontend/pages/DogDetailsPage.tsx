@@ -172,7 +172,9 @@ const DogDetailsPage = () => {
         minHeight: "100vh",
         bgcolor: "#121212",
         color: "#fff",
-        p: 4,
+        px: { xs: 2, md: 4 },
+        pt: { xs: 8, sm: 6, md: 4 },
+        pb: { xs: 6, md: 4 },
         boxSizing: "border-box",
       }}
     >
@@ -185,12 +187,13 @@ const DogDetailsPage = () => {
           gap: 4,
         }}
       >
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={4} alignItems="flex-start">
+          <Grid item xs={12} lg={5}>
             <Box
               sx={{
-                width: 350,
-                height: 250,
+                width: "100%",
+                maxWidth: 500,
+                height: { xs: 200, sm: 250, md: 300 },
                 borderRadius: 2,
                 overflow: "hidden",
                 bgcolor: "#2c2c2c",
@@ -198,6 +201,8 @@ const DogDetailsPage = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 position: "relative",
+                mx: "auto",
+                flexShrink: 0,
               }}
             >
               {dog?.dogID && (
@@ -254,7 +259,7 @@ const DogDetailsPage = () => {
             </Box>
           </Grid>
 
-          <Grid item xs={6} md={8}>
+          <Grid item xs={12} lg={7}>
             <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
               {!isEditingDetails ? (
                 <Button
@@ -269,7 +274,7 @@ const DogDetailsPage = () => {
                   EDIT
                 </Button>
               ) : (
-                <Box sx={{ display: "flex", gap: 1 }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   <Button
                     variant="contained"
                     onClick={handleSaveDetails}
@@ -296,74 +301,30 @@ const DogDetailsPage = () => {
             </Box>
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField
-                  label="Name"
-                  name="name"
-                  value={
-                    isEditingDetails ? editableFields.name : dog?.name || ""
-                  }
-                  disabled={!isEditingDetails}
-                  onChange={handleFieldChange}
-                  fullWidth
-                  sx={textFieldStyle}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Alter"
-                  name="age"
-                  value={isEditingDetails ? editableFields.age : dog?.age || ""}
-                  disabled={!isEditingDetails}
-                  onChange={handleFieldChange}
-                  type="number"
-                  fullWidth
-                  sx={textFieldStyle}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Rasse"
-                  name="race"
-                  value={
-                    isEditingDetails ? editableFields.race : dog?.race || ""
-                  }
-                  disabled={!isEditingDetails}
-                  onChange={handleFieldChange}
-                  fullWidth
-                  sx={textFieldStyle}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Gewicht"
-                  name="weight"
-                  value={
-                    isEditingDetails ? editableFields.weight : dog?.weight || ""
-                  }
-                  disabled={!isEditingDetails}
-                  onChange={handleFieldChange}
-                  type="number"
-                  fullWidth
-                  sx={textFieldStyle}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Besitzer"
-                  name="ownerID"
-                  value={
-                    isEditingDetails
-                      ? editableFields.ownerID
-                      : dog?.ownerID || ""
-                  }
-                  disabled={!isEditingDetails}
-                  onChange={handleFieldChange}
-                  type="number"
-                  fullWidth
-                  sx={textFieldStyle}
-                />
-              </Grid>
+              {[
+                { label: "Name", name: "name", type: "text" },
+                { label: "Alter", name: "age", type: "number" },
+                { label: "Rasse", name: "race", type: "text" },
+                { label: "Gewicht", name: "weight", type: "number" },
+                { label: "Besitzer", name: "ownerID", type: "number" },
+              ].map((field) => (
+                <Grid item xs={12} sm={6} key={field.name}>
+                  <TextField
+                    label={field.label}
+                    name={field.name}
+                    value={
+                      isEditingDetails
+                        ? editableFields[field.name as keyof EditableDogFields]
+                        : (dog?.[field.name as keyof Dog] || "").toString()
+                    }
+                    disabled={!isEditingDetails}
+                    onChange={handleFieldChange}
+                    type={field.type}
+                    fullWidth
+                    sx={textFieldStyle}
+                  />
+                </Grid>
+              ))}
             </Grid>
           </Grid>
         </Grid>
@@ -391,7 +352,7 @@ const DogDetailsPage = () => {
             }}
           />
           {isEditing && (
-            <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
+            <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
               <Button
                 onClick={handleSaveDescription}
                 variant="contained"
@@ -425,7 +386,7 @@ const DogDetailsPage = () => {
         <Box>
           <TextField
             label="Behandlungen"
-            value={""}
+            value=""
             disabled
             fullWidth
             multiline
@@ -434,7 +395,7 @@ const DogDetailsPage = () => {
           />
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-start", gap: 2 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
           <Button
             variant="contained"
             onClick={() => navigate(-1)}

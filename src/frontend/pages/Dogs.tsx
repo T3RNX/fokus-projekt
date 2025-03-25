@@ -34,11 +34,8 @@ const Dogs = () => {
   return (
     <Box
       sx={{
-        position: "relative",
-        height: "100vh",
-        overflow: "auto",
         backgroundColor: "#121212",
-        marginTop: "-20px",
+        paddingBottom: 4,
       }}
     >
       <Box

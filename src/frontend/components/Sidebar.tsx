@@ -6,46 +6,58 @@ import {
   ListItemText,
   Divider,
   ListItem,
-} from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PetsIcon from '@mui/icons-material/Pets';
-import PeopleIcon from '@mui/icons-material/People';
-import HealingIcon from '@mui/icons-material/Healing';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { useLocation } from 'react-router-dom';
-import React from 'react';
+  ListItemButton,
+} from "@mui/material";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PetsIcon from "@mui/icons-material/Pets";
+import PeopleIcon from "@mui/icons-material/People";
+import HealingIcon from "@mui/icons-material/Healing";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { useLocation, Link } from "react-router-dom";
+import React from "react";
 
-const Sidebar = () => {
+interface SidebarProps {
+  onClickItem?: () => void; // only used in mobile mode
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onClickItem }) => {
   const location = useLocation();
 
   const isSelected = (path: string) => location.pathname === path;
+
+  const navItems = [
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
+    { text: "Hunde", icon: <PetsIcon />, path: "/dogs" },
+    { text: "Besitzer", icon: <PeopleIcon />, path: "/owner" },
+    { text: "Behandlungen", icon: <HealingIcon />, path: "/treatments" },
+  ];
 
   return (
     <Box
       sx={{
         width: 250,
-        height: '100vh',
-        backgroundColor: '#1E1E1E',
-        color: '#FFFFFF',
-        display: 'flex',
-        flexDirection: 'column',
+        height: "100vh",
+        backgroundColor: "#1E1E1E",
+        color: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           padding: 2,
-          borderBottom: '1px solid #333',
+          borderBottom: "1px solid #333",
         }}
       >
         <Typography
           variant="h5"
           sx={{
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
             gap: 1,
           }}
         >
@@ -53,74 +65,60 @@ const Sidebar = () => {
         </Typography>
       </Box>
 
-      <List sx={{ marginTop: 2 }}>
-        {[
-          { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-          { text: 'Hunde', icon: <PetsIcon />, path: '/dogs' },
-          { text: 'Besitzer', icon: <PeopleIcon />, path: '/owner' },
-          { text: 'Behandlungen', icon: <HealingIcon />, path: '/treatments' },
-        ].map((item) => (
-          <ListItem
-            key={item.text}
-            component="a"
-            href={item.path}
-            sx={{
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: isSelected(item.path) ? '#333' : 'transparent',
-              color: '#FFFFFF',
-              marginBottom: '12px',
-              '&:hover': {
-                backgroundColor: isSelected(item.path) ? '#333' : '#555',
-              },
-              transition: 'background-color 0.3s ease',
-            }}
-          >
-            <ListItemIcon
+      <List sx={{ mt: 2 }}>
+        {navItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              onClick={onClickItem}
               sx={{
-                color: '#FFFFFF',
+                borderRadius: "8px",
+                backgroundColor: isSelected(item.path) ? "#333" : "transparent",
+                color: "#FFFFFF",
+                mb: 1,
+                mx: 1,
+                "&:hover": {
+                  backgroundColor: isSelected(item.path) ? "#333" : "#555",
+                },
+                transition: "background-color 0.3s ease",
               }}
             >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
+              <ListItemIcon sx={{ color: "#FFFFFF" }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
 
       {/* Footer Section */}
-      <Box sx={{ marginTop: 'auto', paddingBottom: '16px' }}>
-        <Divider sx={{ backgroundColor: '#333' }} />
+      <Box sx={{ mt: "auto", pb: 2 }}>
+        <Divider sx={{ backgroundColor: "#333" }} />
         <List>
-          <ListItem
-            component="a"
-            href="/settings"
-            sx={{
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: isSelected('/settings') ? '#333' : 'transparent',
-              color: '#FFFFFF',
-              marginBottom: '12px',
-              '&:hover': {
-                backgroundColor: isSelected('/settings') ? '#333' : '#555',
-              },
-              transition: 'background-color 0.3s ease',
-            }}
-          >
-            <ListItemIcon
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              to="/settings"
+              onClick={onClickItem}
               sx={{
-                color: '#FFFFFF',
+                borderRadius: "8px",
+                backgroundColor: isSelected("/settings")
+                  ? "#333"
+                  : "transparent",
+                color: "#FFFFFF",
+                mt: 1,
+                mx: 1,
+                "&:hover": {
+                  backgroundColor: isSelected("/settings") ? "#333" : "#555",
+                },
+                transition: "background-color 0.3s ease",
               }}
             >
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
+              <ListItemIcon sx={{ color: "#FFFFFF" }}>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Settings" />
+            </ListItemButton>
           </ListItem>
         </List>
       </Box>
@@ -129,4 +127,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-  
