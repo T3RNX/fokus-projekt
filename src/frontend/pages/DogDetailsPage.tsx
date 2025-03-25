@@ -4,13 +4,29 @@ import { Box, Typography, Button, TextField, Grid } from "@mui/material";
 import PetsIcon from "@mui/icons-material/Pets";
 import { Dog, getDogById, deleteDog, getImageUrl } from "../API/Dog";
 
+interface EditableDogFields {
+  name: string;
+  age: string;
+  race: string;
+  weight: string;
+  ownerID: string;
+}
+
 const DogDetailsPage = () => {
   const { dogID } = useParams();
   const navigate = useNavigate();
   const [dog, setDog] = useState<Dog | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [description, setDescription] = useState("");
+  const [editableFields, setEditableFields] = useState<EditableDogFields>({
+    name: "",
+    age: "",
+    race: "",
+    weight: "",
+    ownerID: "",
+  });
 
   useEffect(() => {
     const fetchDog = async () => {
@@ -18,6 +34,13 @@ const DogDetailsPage = () => {
       try {
         const fetchedDog = await getDogById(parseInt(dogID, 10));
         setDog(fetchedDog);
+        setEditableFields({
+          name: fetchedDog.name || "",
+          age: fetchedDog.age?.toString() || "",
+          race: fetchedDog.race || "",
+          weight: fetchedDog.weight?.toString() || "",
+          ownerID: fetchedDog.ownerID?.toString() || "",
+        });
       } catch (err) {
         console.error("Error fetching dog:", err);
       } finally {
@@ -40,9 +63,7 @@ const DogDetailsPage = () => {
         `https://localhost:7202/Dog/${dogID}/description`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ description }),
         }
       );
@@ -54,6 +75,68 @@ const DogDetailsPage = () => {
     } catch (error) {
       console.error("Error updating description:", error);
     }
+  };
+
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditableFields((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveDetails = async () => {
+    if (!dogID) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("Name", editableFields.name);
+      formData.append("Age", editableFields.age);
+      formData.append("Race", editableFields.race);
+      formData.append("Weight", editableFields.weight);
+      formData.append("OwnerID", editableFields.ownerID);
+
+      if (dog?.description) {
+        formData.append("Description", dog.description);
+      }
+
+      const response = await fetch(`https://localhost:7202/Dog/${dogID}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Failed to update dog details");
+
+      setDog((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: editableFields.name,
+              age: parseInt(editableFields.age) || 0,
+              race: editableFields.race,
+              weight: parseFloat(editableFields.weight) || 0,
+              ownerID: parseInt(editableFields.ownerID) || 0,
+            }
+          : null
+      );
+
+      setIsEditingDetails(false);
+    } catch (error) {
+      console.error("Error updating dog details:", error);
+    }
+  };
+
+  const handleCancelDetailsEdit = () => {
+    if (dog) {
+      setEditableFields({
+        name: dog.name || "",
+        age: dog.age?.toString() || "",
+        race: dog.race || "",
+        weight: dog.weight?.toString() || "",
+        ownerID: dog.ownerID?.toString() || "",
+      });
+    }
+    setIsEditingDetails(false);
   };
 
   const handleDelete = async () => {
@@ -114,64 +197,114 @@ const DogDetailsPage = () => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                position: "relative",
               }}
             >
-              {dog?.dogID ? (
-                <img
-                  src={getImageUrl(dog.dogID)}
-                  alt={dog.name}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.style.display = "none";
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
+              {dog?.dogID && (
+                <>
+                  <img
+                    src={getImageUrl(dog.dogID)}
+                    alt={dog.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.style.display = "none";
+                      const fallback =
+                        e.currentTarget.parentElement?.querySelector(
+                          ".fallback"
+                        );
+                      if (fallback)
+                        (fallback as HTMLElement).style.display = "flex";
+                    }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <Box
+                    className="fallback"
+                    sx={{
+                      display: "none",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                      color: "#666",
+                      position: "absolute",
+                    }}
+                  >
+                    <PetsIcon sx={{ fontSize: 60 }} />
+                    <Typography variant="body2">Kein Bild vorhanden</Typography>
+                  </Box>
+                </>
+              )}
+              {!dog?.dogID && (
                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
+                    gap: 2,
                     color: "#666",
                   }}
                 >
                   <PetsIcon sx={{ fontSize: 60 }} />
-                  <Typography>Kein Bild vorhanden</Typography>
+                  <Typography variant="body2">Kein Bild vorhanden</Typography>
                 </Box>
               )}
             </Box>
           </Grid>
 
           <Grid item xs={6} md={8}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                mb: 2,
-              }}
-            >
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: "#ff6c3e",
-                  "&:hover": { bgcolor: "#ff5722" },
-                  fontWeight: "bold",
-                }}
-              >
-                EDIT
-              </Button>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+              {!isEditingDetails ? (
+                <Button
+                  variant="contained"
+                  onClick={() => setIsEditingDetails(true)}
+                  sx={{
+                    bgcolor: "#ff6c3e",
+                    "&:hover": { bgcolor: "#ff5722" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  EDIT
+                </Button>
+              ) : (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleSaveDetails}
+                    sx={{
+                      bgcolor: "#ff6c3e",
+                      "&:hover": { bgcolor: "#ff5722" },
+                      fontWeight: "bold",
+                    }}
+                  >
+                    SAVE
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleCancelDetailsEdit}
+                    sx={{
+                      bgcolor: "#2c2c2c",
+                      "&:hover": { bgcolor: "#444" },
+                    }}
+                  >
+                    CANCEL
+                  </Button>
+                </Box>
+              )}
             </Box>
 
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField
                   label="Name"
-                  value={dog?.name || ""}
-                  disabled
+                  name="name"
+                  value={
+                    isEditingDetails ? editableFields.name : dog?.name || ""
+                  }
+                  disabled={!isEditingDetails}
+                  onChange={handleFieldChange}
                   fullWidth
                   sx={textFieldStyle}
                 />
@@ -179,8 +312,11 @@ const DogDetailsPage = () => {
               <Grid item xs={6}>
                 <TextField
                   label="Alter"
-                  value={dog?.age || ""}
-                  disabled
+                  name="age"
+                  value={isEditingDetails ? editableFields.age : dog?.age || ""}
+                  disabled={!isEditingDetails}
+                  onChange={handleFieldChange}
+                  type="number"
                   fullWidth
                   sx={textFieldStyle}
                 />
@@ -188,8 +324,12 @@ const DogDetailsPage = () => {
               <Grid item xs={6}>
                 <TextField
                   label="Rasse"
-                  value={dog?.race || ""}
-                  disabled
+                  name="race"
+                  value={
+                    isEditingDetails ? editableFields.race : dog?.race || ""
+                  }
+                  disabled={!isEditingDetails}
+                  onChange={handleFieldChange}
                   fullWidth
                   sx={textFieldStyle}
                 />
@@ -197,8 +337,13 @@ const DogDetailsPage = () => {
               <Grid item xs={6}>
                 <TextField
                   label="Gewicht"
-                  value={dog?.weight || ""}
-                  disabled
+                  name="weight"
+                  value={
+                    isEditingDetails ? editableFields.weight : dog?.weight || ""
+                  }
+                  disabled={!isEditingDetails}
+                  onChange={handleFieldChange}
+                  type="number"
                   fullWidth
                   sx={textFieldStyle}
                 />
@@ -206,8 +351,15 @@ const DogDetailsPage = () => {
               <Grid item xs={6}>
                 <TextField
                   label="Besitzer"
-                  value={dog?.ownerID || ""}
-                  disabled
+                  name="ownerID"
+                  value={
+                    isEditingDetails
+                      ? editableFields.ownerID
+                      : dog?.ownerID || ""
+                  }
+                  disabled={!isEditingDetails}
+                  onChange={handleFieldChange}
+                  type="number"
                   fullWidth
                   sx={textFieldStyle}
                 />
@@ -222,14 +374,10 @@ const DogDetailsPage = () => {
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);
-              if (!isEditing) {
-                setIsEditing(true);
-              }
+              if (!isEditing) setIsEditing(true);
             }}
             onClick={() => {
-              if (!isEditing) {
-                setIsEditing(true);
-              }
+              if (!isEditing) setIsEditing(true);
             }}
             fullWidth
             multiline
@@ -250,11 +398,6 @@ const DogDetailsPage = () => {
                 sx={{
                   bgcolor: "#ff6c3e",
                   "&:hover": { bgcolor: "#ff5722" },
-                  "&.Mui-disabled": {
-                    color: "#ffffff",
-                    opacity: 0.7,
-                    bgcolor: "#ff6c3e",
-                  },
                   fontWeight: "bold",
                   color: "#ffffff",
                 }}
@@ -278,6 +421,7 @@ const DogDetailsPage = () => {
             </Box>
           )}
         </Box>
+
         <Box>
           <TextField
             label="Behandlungen"
