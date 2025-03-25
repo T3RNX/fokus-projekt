@@ -37,6 +37,19 @@ const CreateDogPage = () => {
   };
 
   const handleSubmit = async () => {
+    const emptyFields = Object.entries(formValues).filter(
+      ([_, value]) => value.trim() === ""
+    );
+    if (emptyFields.length > 0) {
+      setErrorMessage("Bitte fülle alle Pflichtfelder aus.");
+      return;
+    }
+
+    if (selectedImage && selectedImage.size > 2 * 1024 * 1024) {
+      setErrorMessage("Bild ist zu gross. Maximale Grösse beträgt 2MB.");
+      return;
+    }
+
     try {
       setErrorMessage("");
 
@@ -63,7 +76,7 @@ const CreateDogPage = () => {
       }
     } catch (error: any) {
       console.error("Error creating dog:", error);
-      setErrorMessage(error.message || "Fehler beim Erstellen des Hundes");
+      setErrorMessage(error.message || "Error creating dog.");
     }
   };
 
@@ -160,7 +173,6 @@ const CreateDogPage = () => {
           </Box>
         )}
         <Box component="form" sx={{ width: "100%", maxWidth: 400 }}>
-          {/* Rest of your form fields remain the same */}
           <TextField
             variant="outlined"
             label="Name"
@@ -180,7 +192,6 @@ const CreateDogPage = () => {
               },
             }}
           />
-          {/* ... other fields ... */}
           <TextField
             variant="outlined"
             label="Alter"
