@@ -1,17 +1,21 @@
-import { Box, Typography } from '@mui/material';
-import React from 'react';
+import type React from "react";
 
-const Treatments = () => {
-  console.log('Treatment page rendered');
+const Treatments: React.FC = () => {
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Treatments
-      </Typography>
-      <Typography variant="body1">
-        Welcome to the Treatment Page!
-      </Typography>
-    </Box>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">Behandlungen</h1>
+        <p className="text-muted-foreground mt-2">
+          Verwalten Sie die Behandlungen und Termine
+        </p>
+      </div>
+
+      <div className="bg-card rounded-lg p-6 border border-border">
+        <p className="text-muted-foreground">
+          Behandlungsliste wird hier angezeigt.
+        </p>
+      </div>
+    </div>
   );
 };
 

@@ -1,18 +1,21 @@
-import { Box, Typography } from '@mui/material';
-import React from 'react';
+import type React from "react";
 
-
-const Settings = () => {
-  console.log('Settings page rendered');
+const Settings: React.FC = () => {
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Settings
-      </Typography>
-      <Typography variant="body1">
-        Welcome to the Settings Page!
-      </Typography>
-    </Box>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">Einstellungen</h1>
+        <p className="text-muted-foreground mt-2">
+          Konfigurieren Sie Ihre Anwendungseinstellungen
+        </p>
+      </div>
+
+      <div className="bg-card rounded-lg p-6 border border-border">
+        <p className="text-muted-foreground">
+          Einstellungen werden hier angezeigt.
+        </p>
+      </div>
+    </div>
   );
 };
 
