@@ -1,29 +1,30 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
-import Dogs from "../pages/Dogs";
-import Owner from "../pages/Owner";
-import Treatments from "../pages/Treatments";
 import Dashboard from "../pages/Dashboard";
-import Settings from "../pages/Settings";
+import Dogs from "../pages/Dogs";
 import CreateDogPage from "../pages/CreateDogPage";
 import DogDetailsPage from "../pages/DogDetailsPage";
+import Owner from "../pages/Owner";
+import Treatments from "../pages/Treatments";
+import Settings from "../pages/Settings";
+import { ThemeProvider } from "../context/ThemeContext";
 
-const App = () => {
+function App() {
   return (
-    <Router>
+    <ThemeProvider>
       <DashboardLayout>
         <Routes>
+          <Route path="/" element={<Dashboard />} />
           <Route path="/dogs" element={<Dogs />} />
-          <Route path="/owner" element={<Owner />} />
           <Route path="/dogs/create" element={<CreateDogPage />} />
           <Route path="/dogs/:dogID" element={<DogDetailsPage />} />
+          <Route path="/owner" element={<Owner />} />
           <Route path="/treatments" element={<Treatments />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/" element={<Dashboard />} />
         </Routes>
       </DashboardLayout>
-    </Router>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;
