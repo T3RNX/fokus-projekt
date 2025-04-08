@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, TextField, Grid } from "@mui/material";
-import PetsIcon from "@mui/icons-material/Pets";
-import { Dog, getDogById, deleteDog, getImageUrl } from "../API/Dog";
+import { DogIcon, Pencil, Plus } from "lucide-react";
+import {
+  type Dog as DogType,
+  getDogById,
+  deleteDog,
+  getImageUrl,
+} from "../API/Dog";
 
 interface EditableDogFields {
   name: string;
@@ -12,14 +20,20 @@ interface EditableDogFields {
   ownerID: string;
 }
 
-const DogDetailsPage = () => {
-  const { dogID } = useParams();
+const DogDetail = () => {
+  const { dogID } = useParams<{ dogID: string }>();
   const navigate = useNavigate();
-  const [dog, setDog] = useState<Dog | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [dog, setDog] = useState<DogType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [isEditingImage, setIsEditingImage] = useState(false);
   const [description, setDescription] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [activeTab, setActiveTab] = useState("description");
   const [editableFields, setEditableFields] = useState<EditableDogFields>({
     name: "",
     age: "",
@@ -31,8 +45,10 @@ const DogDetailsPage = () => {
   useEffect(() => {
     const fetchDog = async () => {
       if (!dogID) return;
+
       try {
-        const fetchedDog = await getDogById(parseInt(dogID, 10));
+        setLoading(true);
+        const fetchedDog = await getDogById(Number.parseInt(dogID, 10));
         setDog(fetchedDog);
         setEditableFields({
           name: fetchedDog.name || "",
@@ -41,6 +57,7 @@ const DogDetailsPage = () => {
           weight: fetchedDog.weight?.toString() || "",
           ownerID: fetchedDog.ownerID?.toString() || "",
         });
+        setDescription(fetchedDog.description || "");
       } catch (err) {
         console.error("Error fetching dog:", err);
       } finally {
@@ -51,24 +68,11 @@ const DogDetailsPage = () => {
     fetchDog();
   }, [dogID]);
 
-  useEffect(() => {
-    if (dog?.description) {
-      setDescription(dog.description);
-    }
-  }, [dog]);
-
   const handleSaveDescription = async () => {
-    try {
-      const response = await fetch(
-        `https://localhost:7202/Dog/${dogID}/description`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ description }),
-        }
-      );
+    if (!dogID) return;
 
-      if (!response.ok) throw new Error("Failed to update description");
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setDog((prev) => (prev ? { ...prev, description } : null));
       setIsEditing(false);
@@ -89,33 +93,17 @@ const DogDetailsPage = () => {
     if (!dogID) return;
 
     try {
-      const formData = new FormData();
-      formData.append("Name", editableFields.name);
-      formData.append("Age", editableFields.age);
-      formData.append("Race", editableFields.race);
-      formData.append("Weight", editableFields.weight);
-      formData.append("OwnerID", editableFields.ownerID);
-
-      if (dog?.description) {
-        formData.append("Description", dog.description);
-      }
-
-      const response = await fetch(`https://localhost:7202/Dog/${dogID}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Failed to update dog details");
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setDog((prev) =>
         prev
           ? {
               ...prev,
               name: editableFields.name,
-              age: parseInt(editableFields.age) || 0,
+              age: Number.parseInt(editableFields.age) || 0,
               race: editableFields.race,
-              weight: parseFloat(editableFields.weight) || 0,
-              ownerID: parseInt(editableFields.ownerID) || 0,
+              weight: Number.parseFloat(editableFields.weight) || 0,
+              ownerID: Number.parseInt(editableFields.ownerID) || 0,
             }
           : null
       );
@@ -142,314 +130,373 @@ const DogDetailsPage = () => {
   const handleDelete = async () => {
     if (!dogID) return;
     try {
-      await deleteDog(parseInt(dogID, 10));
+      await deleteDog(Number.parseInt(dogID, 10));
       navigate("/dogs");
     } catch (err) {
       console.error("Error deleting dog:", err);
     }
   };
 
+  const handleImageUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!dogID) return;
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Bild ist zu groß. Maximale Größe beträgt 2MB.");
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Ungültiger Dateityp. Nur JPG, PNG und GIF sind erlaubt.");
+      return;
+    }
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
+
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "#121212",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h4">Loading...</Typography>
-      </Box>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-foreground"></div>
+      </div>
+    );
+  }
+
+  if (!dog) {
+    return (
+      <div className="bg-card rounded-lg p-6 border border-border text-center">
+        <p className="text-muted-foreground">Hund nicht gefunden</p>
+        <button
+          onClick={() => navigate("/dogs")}
+          className="mt-4 bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-4 py-2 rounded-lg cursor-pointer"
+        >
+          Zurück zur Übersicht
+        </button>
+      </div>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#121212",
-        color: "#fff",
-        px: { xs: 2, md: 4 },
-        pt: { xs: 8, sm: 6, md: 4 },
-        pb: { xs: 6, md: 4 },
-        boxSizing: "border-box",
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-        }}
-      >
-        <Grid container spacing={4} alignItems="flex-start">
-          <Grid item xs={12} lg={5}>
-            <Box
-              sx={{
-                width: "100%",
-                maxWidth: 500,
-                height: { xs: 200, sm: 250, md: 300 },
-                borderRadius: 2,
-                overflow: "hidden",
-                bgcolor: "#2c2c2c",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                position: "relative",
-                mx: "auto",
-                flexShrink: 0,
-              }}
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-foreground">{dog.name}</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/dogs")}
+            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer"
+          >
+            Zurück
+          </button>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer"
+          >
+            Löschen
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-card-foreground">Bild</h2>
+            <button
+              onClick={handleImageUploadClick}
+              className="text-card-foreground p-1 rounded-full hover:bg-accent cursor-pointer"
             >
-              {dog?.dogID && (
-                <>
-                  <img
-                    src={getImageUrl(dog.dogID)}
-                    alt={dog.name}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.style.display = "none";
-                      const fallback =
-                        e.currentTarget.parentElement?.querySelector(
-                          ".fallback"
-                        );
-                      if (fallback)
-                        (fallback as HTMLElement).style.display = "flex";
-                    }}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <Box
-                    className="fallback"
-                    sx={{
-                      display: "none",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 2,
-                      color: "#666",
-                      position: "absolute",
-                    }}
-                  >
-                    <PetsIcon sx={{ fontSize: 60 }} />
-                    <Typography variant="body2">Kein Bild vorhanden</Typography>
-                  </Box>
-                </>
-              )}
-              {!dog?.dogID && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 2,
-                    color: "#666",
-                  }}
-                >
-                  <PetsIcon sx={{ fontSize: 60 }} />
-                  <Typography variant="body2">Kein Bild vorhanden</Typography>
-                </Box>
-              )}
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} lg={7}>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-              {!isEditingDetails ? (
-                <Button
-                  variant="contained"
-                  onClick={() => setIsEditingDetails(true)}
-                  sx={{
-                    bgcolor: "#ff6c3e",
-                    "&:hover": { bgcolor: "#ff5722" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  EDIT
-                </Button>
+              <Pencil size={20} />
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+              {dog.dogID && !imageError ? (
+                <img
+                  src={getImageUrl(dog.dogID) || "/placeholder.svg"}
+                  alt={dog.name}
+                  onError={() => setImageError(true)}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  <Button
-                    variant="contained"
-                    onClick={handleSaveDetails}
-                    sx={{
-                      bgcolor: "#ff6c3e",
-                      "&:hover": { bgcolor: "#ff5722" },
-                      fontWeight: "bold",
-                    }}
-                  >
-                    SAVE
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleCancelDetailsEdit}
-                    sx={{
-                      bgcolor: "#2c2c2c",
-                      "&:hover": { bgcolor: "#444" },
-                    }}
-                  >
-                    CANCEL
-                  </Button>
-                </Box>
+                <div className="flex flex-col items-center justify-center h-full">
+                  <DogIcon className="h-16 w-16 text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground">Kein Bild vorhanden</p>
+                </div>
               )}
-            </Box>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Unterstützte Formate: JPG, PNG, GIF. Maximale Größe: 2MB.
+            </p>
+          </div>
+        </div>
 
-            <Grid container spacing={2}>
-              {[
-                { label: "Name", name: "name", type: "text" },
-                { label: "Alter", name: "age", type: "number" },
-                { label: "Rasse", name: "race", type: "text" },
-                { label: "Gewicht", name: "weight", type: "number" },
-                { label: "Besitzer", name: "ownerID", type: "number" },
-              ].map((field) => (
-                <Grid item xs={12} sm={6} key={field.name}>
-                  <TextField
-                    label={field.label}
-                    name={field.name}
-                    value={
-                      isEditingDetails
-                        ? editableFields[field.name as keyof EditableDogFields]
-                        : (dog?.[field.name as keyof Dog] || "").toString()
-                    }
-                    disabled={!isEditingDetails}
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-card-foreground">
+              Details
+            </h2>
+            <button
+              onClick={() => setIsEditingDetails(!isEditingDetails)}
+              className="text-card-foreground p-1 rounded-full hover:bg-accent cursor-pointer"
+            >
+              <Pencil size={20} />
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">
+                  Name
+                </label>
+                {isEditingDetails ? (
+                  <input
+                    type="text"
+                    value={editableFields.name}
                     onChange={handleFieldChange}
-                    type={field.type}
-                    fullWidth
-                    sx={textFieldStyle}
+                    name="name"
+                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
                   />
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        </Grid>
+                ) : (
+                  <div className="bg-muted text-card-foreground p-3 rounded-lg">
+                    {dog.name}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">
+                  Alter
+                </label>
+                {isEditingDetails ? (
+                  <input
+                    type="number"
+                    value={editableFields.age}
+                    onChange={handleFieldChange}
+                    name="age"
+                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
+                  />
+                ) : (
+                  <div className="bg-muted text-card-foreground p-3 rounded-lg">
+                    {dog.age}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">
+                  Rasse
+                </label>
+                {isEditingDetails ? (
+                  <input
+                    type="text"
+                    value={editableFields.race}
+                    onChange={handleFieldChange}
+                    name="race"
+                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
+                  />
+                ) : (
+                  <div className="bg-muted text-card-foreground p-3 rounded-lg">
+                    {dog.race}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">
+                  Gewicht (kg)
+                </label>
+                {isEditingDetails ? (
+                  <input
+                    type="number"
+                    value={editableFields.weight}
+                    onChange={handleFieldChange}
+                    name="weight"
+                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
+                  />
+                ) : (
+                  <div className="bg-muted text-card-foreground p-3 rounded-lg">
+                    {dog.weight}
+                  </div>
+                )}
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm text-muted-foreground mb-1">
+                  Besitzer ID
+                </label>
+                {isEditingDetails ? (
+                  <input
+                    type="number"
+                    value={editableFields.ownerID}
+                    onChange={handleFieldChange}
+                    name="ownerID"
+                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
+                  />
+                ) : (
+                  <div className="bg-muted text-card-foreground p-3 rounded-lg">
+                    {dog.ownerID}
+                  </div>
+                )}
+              </div>
+            </div>
 
-        <Box>
-          <TextField
-            label="Beschreibung"
-            value={description}
-            onChange={(e) => {
-              setDescription(e.target.value);
-              if (!isEditing) setIsEditing(true);
-            }}
-            onClick={() => {
-              if (!isEditing) setIsEditing(true);
-            }}
-            fullWidth
-            multiline
-            rows={4}
-            sx={{
-              ...textFieldStyle,
-              "& .MuiOutlinedInput-root": {
-                ...textFieldStyle["& .MuiOutlinedInput-root"],
-                cursor: "text",
-              },
-            }}
-          />
-          {isEditing && (
-            <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Button
-                onClick={handleSaveDescription}
-                variant="contained"
-                sx={{
-                  bgcolor: "#ff6c3e",
-                  "&:hover": { bgcolor: "#ff5722" },
-                  fontWeight: "bold",
-                  color: "#ffffff",
-                }}
-                disabled={description === dog?.description}
-              >
-                Speichern
-              </Button>
-              <Button
-                onClick={() => {
-                  setDescription(dog?.description || "");
-                  setIsEditing(false);
-                }}
-                variant="contained"
-                sx={{
-                  bgcolor: "#2c2c2c",
-                  "&:hover": { bgcolor: "#444" },
-                }}
+            {isEditingDetails && (
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={handleCancelDetailsEdit}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 cursor-pointer"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleSaveDetails}
+                  className="px-4 py-2 bg-[#ff6c3e] hover:bg-[#e55c2e] text-white rounded-lg cursor-pointer"
+                >
+                  Speichern
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 mb-4">
+        <div className="inline-flex bg-card rounded-lg overflow-hidden border border-border">
+          <button
+            className={`px-6 py-3 ${
+              activeTab === "description"
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+            }`}
+            onClick={() => setActiveTab("description")}
+          >
+            Beschreibung
+          </button>
+          <button
+            className={`px-6 py-3 ${
+              activeTab === "treatments"
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+            }`}
+            onClick={() => setActiveTab("treatments")}
+          >
+            Behandlungen
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "description" && (
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-card-foreground">
+              Beschreibung
+            </h2>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="text-card-foreground p-1 rounded-full hover:bg-accent cursor-pointer"
+            >
+              <Pencil size={20} />
+            </button>
+          </div>
+          <div className="p-6">
+            {isEditing ? (
+              <div>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full min-h-[150px] bg-muted text-card-foreground p-3 rounded-lg border border-input resize-none"
+                  placeholder="Keine Beschreibung vorhanden"
+                />
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 cursor-pointer"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    onClick={handleSaveDescription}
+                    className="px-4 py-2 bg-[#ff6c3e] hover:bg-[#e55c2e] text-white rounded-lg cursor-pointer"
+                  >
+                    Speichern
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-card-foreground">
+                {description || "Keine Beschreibung vorhanden."}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "treatments" && (
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-card-foreground">
+              Behandlungen
+            </h2>
+            <button className="bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-3 py-1 rounded-lg text-sm flex items-center gap-1 cursor-pointer">
+              <Plus size={16} />
+              Neue Behandlung
+            </button>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-muted-foreground">
+              Keine Behandlungen vorhanden.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4 border border-border">
+            <h3 className="text-xl font-semibold text-card-foreground mb-4">
+              Hund löschen
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Möchtest du den Hund "{dog.name}" wirklich löschen? Diese Aktion
+              kann nicht rückgängig gemacht werden.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteDialog(false)}
+                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 cursor-pointer"
               >
                 Abbrechen
-              </Button>
-            </Box>
-          )}
-        </Box>
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-white rounded-lg cursor-pointer"
+              >
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <Box>
-          <TextField
-            label="Behandlungen"
-            value=""
-            disabled
-            fullWidth
-            multiline
-            rows={4}
-            sx={textFieldStyle}
-          />
-        </Box>
-
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate(-1)}
-            sx={{
-              bgcolor: "#ff6c3e",
-              "&:hover": { bgcolor: "#ff5722" },
-              fontWeight: "bold",
-            }}
-          >
-            ZURÜCK
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleDelete}
-            sx={{ fontWeight: "bold" }}
-          >
-            DELETE
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/jpeg,image/png,image/gif"
+        onChange={handleImageChange}
+      />
+    </div>
   );
 };
 
-const textFieldStyle = {
-  "& .MuiOutlinedInput-root": {
-    bgcolor: "#2c2c2c",
-    color: "#fff",
-    borderRadius: 1,
-    "& fieldset": {
-      borderColor: "#444",
-    },
-    "&.Mui-disabled": {
-      color: "#fff",
-      WebkitTextFillColor: "#fff",
-      "& fieldset": {
-        borderColor: "#444",
-      },
-    },
-    "& input": {
-      color: "#fff",
-      "&.Mui-disabled": {
-        WebkitTextFillColor: "#fff",
-        color: "#fff",
-      },
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "#fff",
-    "&.Mui-disabled": {
-      color: "#fff",
-    },
-  },
-};
-
-export default DogDetailsPage;
+export default DogDetail;

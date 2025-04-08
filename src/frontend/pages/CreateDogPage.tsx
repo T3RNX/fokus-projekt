@@ -1,23 +1,20 @@
-import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Alert } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { createDog, CreateDogDTO } from "../API/Dog";
+"use client";
 
-interface FormValues {
-  name: string;
-  age: string;
-  race: string;
-  weight: string;
-  ownerID: string;
-}
+import type React from "react";
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createDog } from "../API/Dog";
+import { Plus, ArrowLeft, Upload, X } from "lucide-react";
 
 const CreateDogPage = () => {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [formValues, setFormValues] = useState<FormValues>({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
     name: "",
     age: "",
     race: "",
@@ -25,283 +22,302 @@ const CreateDogPage = () => {
     ownerID: "",
   });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
-      setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Bild darf nicht größer als 5MB sein");
+        return;
+      }
+
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setError(null);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormValues({ ...formValues, [e.target.name]: e.target.value });
+  const removeImage = () => {
+    setSelectedImage(null);
+    setPreviewUrl("");
   };
 
-  const handleSubmit = async () => {
-    const emptyFields = Object.entries(formValues).filter(
-      ([_, value]) => value.trim() === ""
+  const validateForm = () => {
+    const requiredFields = ["name", "age", "race", "weight", "ownerID"];
+    const emptyFields = requiredFields.filter(
+      (field) => !formData[field as keyof typeof formData]
     );
+
     if (emptyFields.length > 0) {
-      setErrorMessage("Bitte fülle alle Pflichtfelder aus.");
-      return;
+      setError(
+        `Bitte füllen Sie alle Pflichtfelder aus: ${emptyFields.join(", ")}`
+      );
+      return false;
     }
 
-    if (selectedImage && selectedImage.size > 2 * 1024 * 1024) {
-      setErrorMessage("Bild ist zu gross. Maximale Grösse beträgt 2MB.");
-      return;
-    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
 
     try {
-      setErrorMessage("");
+      setIsSubmitting(true);
+      setError(null);
 
-      const formData = new FormData();
-      formData.append("Name", formValues.name);
-      formData.append("Age", formValues.age);
-      formData.append("Race", formValues.race);
-      formData.append("Weight", formValues.weight);
-      formData.append("OwnerID", formValues.ownerID);
+      const submitData = new FormData();
+      submitData.append("Name", formData.name);
+      submitData.append("Age", formData.age);
+      submitData.append("Race", formData.race);
+      submitData.append("Weight", formData.weight);
+      submitData.append("OwnerID", formData.ownerID);
 
       if (selectedImage) {
-        if (selectedImage.size > 2 * 1024 * 1024) {
-          // 2MB in bytes
-          setErrorMessage("Bild ist zu gross. Maximale Grösse beträgt 2MB.");
-          return;
-        }
-        formData.append("image", selectedImage);
+        submitData.append("Image", selectedImage);
       }
 
-      const response = await createDog(formData);
-      if (response) {
-        setSuccessMessage("Dog created successfully!");
-        navigate("/dogs");
-      }
-    } catch (error: any) {
-      console.error("Error creating dog:", error);
-      setErrorMessage(error.message || "Error creating dog.");
+      await createDog(submitData);
+      navigate("/dogs");
+    } catch (err) {
+      console.error("Error creating dog:", err);
+      setError(
+        err instanceof Error ? err.message : "Ein Fehler ist aufgetreten"
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        height: "100vh",
-        overflow: "auto",
-        backgroundColor: "#121212",
-      }}
-    >
-      <Box
-        sx={{
-          position: "sticky",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          padding: "20px 24px",
-          backgroundColor: "#121212",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
-        <Typography variant="h4" sx={{ color: "#ffffff" }}>
-          Hund Erstellen
-        </Typography>
-      </Box>
+    <div className="w-full">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Neuen Hund erstellen
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Fügen Sie einen neuen Hund zur Datenbank hinzu
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/dogs")}
+          className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer"
+        >
+          <ArrowLeft size={18} />
+          Zurück
+        </button>
+      </div>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: 3,
-          color: "#FFFFFF",
-        }}
-      >
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2, width: "100%", maxWidth: 400 }}
-          >
-            {successMessage}
-          </Alert>
-        )}
-        {errorMessage && (
-          <Alert severity="error" sx={{ mb: 2, width: "100%", maxWidth: 400 }}>
-            {errorMessage}
-          </Alert>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          style={{ display: "none" }}
-          id="image-upload"
-        />
-        <label htmlFor="image-upload">
-          <Button component="span" variant="contained" sx={{ mt: 2, mb: 2 }}>
-            Upload Image
-          </Button>
-          <Typography variant="caption" sx={{ ml: 1, color: "#aaa" }}>
-            Max. 2MB
-          </Typography>
-        </label>
-        {previewUrl && (
-          <Box
-            sx={{
-              width: 350,
-              height: 250,
-              borderRadius: 2,
-              overflow: "hidden",
-              bgcolor: "#2c2c2c",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: "20px",
-            }}
-          >
-            <img
-              src={previewUrl}
-              alt="Preview"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </Box>
-        )}
-        <Box component="form" sx={{ width: "100%", maxWidth: 400 }}>
-          <TextField
-            variant="outlined"
-            label="Name"
-            name="name"
-            fullWidth
-            margin="normal"
-            value={formValues.name}
-            onChange={handleChange}
-            sx={{
-              backgroundColor: "#1E1E1E",
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: "#FFFFFF",
-              },
-              "& .MuiOutlinedInput-root": {
-                color: "#FFFFFF",
-              },
-            }}
-          />
-          <TextField
-            variant="outlined"
-            label="Alter"
-            name="age"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={formValues.age}
-            onChange={handleChange}
-            sx={{
-              backgroundColor: "#1E1E1E",
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: "#FFFFFF",
-              },
-              "& .MuiOutlinedInput-root": {
-                color: "#FFFFFF",
-              },
-            }}
-          />
-          <TextField
-            variant="outlined"
-            label="Rasse"
-            name="race"
-            fullWidth
-            margin="normal"
-            value={formValues.race}
-            onChange={handleChange}
-            sx={{
-              backgroundColor: "#1E1E1E",
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: "#FFFFFF",
-              },
-              "& .MuiOutlinedInput-root": {
-                color: "#FFFFFF",
-              },
-            }}
-          />
-          <TextField
-            variant="outlined"
-            label="Gewicht"
-            name="weight"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={formValues.weight}
-            onChange={handleChange}
-            sx={{
-              backgroundColor: "#1E1E1E",
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: "#FFFFFF",
-              },
-              "& .MuiOutlinedInput-root": {
-                color: "#FFFFFF",
-              },
-            }}
-          />
-          <TextField
-            variant="outlined"
-            label="Besitzer ID"
-            name="ownerID"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={formValues.ownerID}
-            onChange={handleChange}
-            sx={{
-              backgroundColor: "#1E1E1E",
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: "#FFFFFF",
-              },
-              "& .MuiOutlinedInput-root": {
-                color: "#FFFFFF",
-              },
-            }}
-          />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: 2,
-            }}
-          >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#FF6C3E",
-                "&:hover": { backgroundColor: "#FF5722" },
-              }}
-              onClick={() => navigate(-1)}
-            >
-              Zurück
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#FF6C3E",
-                "&:hover": { backgroundColor: "#FF5722" },
-              }}
-              onClick={handleSubmit}
-            >
-              Erstellen
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <div className="bg-card rounded-lg border border-border p-6 h-full">
+            <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+              Bild
+            </h2>
+
+            {previewUrl ? (
+              <div className="relative rounded-lg overflow-hidden aspect-square mb-4">
+                <img
+                  src={previewUrl || "/placeholder.svg"}
+                  alt="Vorschau"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black/90 cursor-pointer"
+                  aria-label="Bild entfernen"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center p-8 mb-4 aspect-square">
+                <Upload size={48} className="text-muted-foreground mb-3" />
+                <p className="text-center text-muted-foreground mb-2">
+                  Ziehen Sie ein Bild hierher oder klicken Sie, um ein Bild
+                  auszuwählen
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG oder GIF, max. 5MB
+                </p>
+              </div>
+            )}
+
+            <label className="w-full bg-[#ff6c3e] hover:bg-[#e55c2e] text-white py-2 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 transition-colors">
+              <Upload size={18} />
+              Bild hochladen
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <div className="bg-card rounded-lg border border-border p-6">
+            <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+              Informationen
+            </h2>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-card-foreground mb-1"
+                  >
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
+                    placeholder="Name des Hundes"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="age"
+                    className="block text-sm font-medium text-card-foreground mb-1"
+                  >
+                    Alter <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
+                    placeholder="Alter in Jahren"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="race"
+                    className="block text-sm font-medium text-card-foreground mb-1"
+                  >
+                    Rasse <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="race"
+                    name="race"
+                    value={formData.race}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
+                    placeholder="Rasse des Hundes"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="weight"
+                    className="block text-sm font-medium text-card-foreground mb-1"
+                  >
+                    Gewicht (kg) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="weight"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
+                    placeholder="Gewicht in kg"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="ownerID"
+                    className="block text-sm font-medium text-card-foreground mb-1"
+                  >
+                    Besitzer ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="ownerID"
+                    name="ownerID"
+                    value={formData.ownerID}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
+                    placeholder="ID des Besitzers"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2 rounded-lg text-white flex items-center gap-2 ${
+                    isSubmitting
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-[#ff6c3e] hover:bg-[#e55c2e] cursor-pointer"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Wird erstellt...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} />
+                      Hund erstellen
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

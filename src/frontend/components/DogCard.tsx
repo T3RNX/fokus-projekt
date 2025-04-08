@@ -1,9 +1,9 @@
-import React from "react";
-import { Card, CardContent, Typography, Box } from "@mui/material";
-import { Dog } from "../API/Dog";
+"use client";
+
+import type React from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getImageUrl } from "../API/Dog";
-import PetsIcon from "@mui/icons-material/Pets";
+import { type Dog, getImageUrl } from "../API/Dog";
 
 interface DogCardProps extends Dog {
   onDelete?: () => void;
@@ -11,86 +11,54 @@ interface DogCardProps extends Dog {
 
 const DogCard: React.FC<DogCardProps> = ({ dogID, name, age }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
     navigate(`/dogs/${dogID}`);
   };
 
   return (
-    <Card
+    <div
       onClick={handleClick}
-      sx={{
-        minWidth: 300,
-        maxWidth: 300,
-        margin: 2,
-        textAlign: "center",
-        boxShadow: 3,
-        position: "relative",
-        cursor: "pointer",
-      }}
+      className="bg-card rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform duration-200 hover:scale-105 hover:shadow-lg border border-border"
     >
-      <Box
-        sx={{
-          height: 200,
-          position: "relative",
-          backgroundColor: "#1E1E1E",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        {!dogID ? (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-              color: "#666",
-            }}
-          >
-            <PetsIcon sx={{ fontSize: 60 }} />
-            <Typography variant="body2">Kein Bild vorhanden</Typography>
-          </Box>
+      <div className="h-[180px] relative bg-muted flex justify-center items-center">
+        {!dogID || imageError ? (
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
+              <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5" />
+              <path d="M8 14v.5" />
+              <path d="M16 14v.5" />
+              <path d="M11.25 16.25h1.5L12 17l-.75-.75Z" />
+              <path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306" />
+            </svg>
+            <p className="text-sm">Kein Bild vorhanden</p>
+          </div>
         ) : (
           <img
-            src={getImageUrl(dogID)}
+            src={getImageUrl(dogID) || "/placeholder.svg"}
             alt={name}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.style.display = "none";
-              const fallback =
-                e.currentTarget.parentElement?.querySelector(".fallback");
-              if (fallback) (fallback as HTMLElement).style.display = "flex";
-            }}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover"
           />
         )}
-        <Box
-          className="fallback"
-          sx={{
-            display: "none",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            color: "#666",
-            position: "absolute",
-          }}
-        >
-          <PetsIcon sx={{ fontSize: 60 }} />
-          <Typography variant="body2">Kein Bild vorhanden</Typography>
-        </Box>
-      </Box>
-      <CardContent sx={{ backgroundColor: "#f5f5f5" }}>
-        <Typography variant="h6" component="div" fontWeight="bold">
-          {name.toUpperCase()}, {age} JAHRE
-        </Typography>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="p-4">
+        <h2 className="text-lg font-bold text-card-foreground">{name}</h2>
+        <p className="text-muted-foreground">{age} Jahre alt</p>
+      </div>
+    </div>
   );
 };
 
