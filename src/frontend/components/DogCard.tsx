@@ -22,7 +22,7 @@ const DogCard: React.FC<DogCardProps> = ({ dogID, name, age }) => {
       onClick={handleClick}
       className="bg-card rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform duration-200 hover:scale-105 hover:shadow-lg border border-border"
     >
-      <div className="h-[180px] relative bg-muted flex justify-center items-center">
+      <div className="h-[240px] relative bg-muted flex justify-center items-center">
         {!dogID || imageError ? (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <svg
