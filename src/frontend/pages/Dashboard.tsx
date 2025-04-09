@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 import DashboardCard from "../components/DashboardCard";
 
 const Dashboard: React.FC = () => {

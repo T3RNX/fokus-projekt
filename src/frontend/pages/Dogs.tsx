@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import AddButton from "../components/AddButton";
 import DogCard from "../components/DogCard";
 import { type Dog, getAllDogs } from "../API/Dog";
+import React from "react";
 
 const Dogs = () => {
   const navigate = useNavigate();
