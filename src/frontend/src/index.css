@@ -19,7 +19,7 @@ body {
 
 #root {
   height: 100vh;
-  overflow: hidden; /* Prevent unnecessary scrollbars */
+  overflow: hidden;
 }
 
 @theme inline {
@@ -171,7 +171,6 @@ body {
     @apply mt-auto pb-4;
   }
 
-  /* Theme styles */
   .dark {
     color-scheme: dark;
   }
@@ -179,10 +178,4 @@ body {
   .light {
     color-scheme: light;
   }
-}
-
-/* Apply theme transitions */
-* {
-  transition-property: color, background-color, border-color;
-  transition-duration: 200ms;
 }
