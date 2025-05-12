@@ -6,8 +6,10 @@ import CreateDogPage from "../pages/CreateDogPage";
 import DogDetailsPage from "../pages/DogDetailsPage";
 import Owner from "../pages/Owner";
 import Treatments from "../pages/Treatments";
+import CreateTreatmentPage from "../pages/CreateTreatmentPage";
 import Settings from "../pages/Settings";
 import { ThemeProvider } from "../context/ThemeContext";
+import TreatmentDetailsPage from "../pages/TreatmentDetailsPage";
 
 function App() {
   return (
@@ -20,6 +22,11 @@ function App() {
           <Route path="/dogs/:dogID" element={<DogDetailsPage />} />
           <Route path="/owner" element={<Owner />} />
           <Route path="/treatments" element={<Treatments />} />
+          <Route path="/treatments/create" element={<CreateTreatmentPage />} />
+          <Route
+            path="/treatments/:treatmentID"
+            element={<TreatmentDetailsPage />}
+          />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </DashboardLayout>
