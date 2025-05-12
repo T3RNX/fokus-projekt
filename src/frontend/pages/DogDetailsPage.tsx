@@ -1,16 +1,32 @@
-"use client";
-
 import React from "react";
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { DogIcon, Pencil, Plus } from "lucide-react";
+import {
+  DogIcon,
+  Pencil,
+  Plus,
+  ArrowLeft,
+  Trash2,
+  Calendar,
+} from "lucide-react";
 import {
   type Dog as DogType,
   getDogById,
   deleteDog,
   getImageUrl,
 } from "../API/Dog";
+import { getAllTreatments } from "../API/Treatment";
+import { parseLocalDate, formatTime } from "@/lib/date-utils";
+
+interface Treatment {
+  treatmentID: number;
+  dogID: number;
+  description: string;
+  date: string;
+  time: string;
+  cost: number;
+  dogName?: string;
+}
 
 interface EditableDogFields {
   name: string;
@@ -26,7 +42,9 @@ const DogDetail = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [dog, setDog] = useState<DogType | null>(null);
+  const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [treatmentsLoading, setTreatmentsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isEditingImage, setIsEditingImage] = useState(false);
@@ -68,6 +86,40 @@ const DogDetail = () => {
     fetchDog();
   }, [dogID]);
 
+  useEffect(() => {
+    const fetchTreatments = async () => {
+      if (!dogID) return;
+
+      try {
+        setTreatmentsLoading(true);
+        const allTreatments = await getAllTreatments();
+
+        const dogTreatments = allTreatments.filter(
+          (treatment: Treatment) =>
+            treatment.dogID === Number.parseInt(dogID, 10)
+        );
+
+        dogTreatments.sort((a: Treatment, b: Treatment) => {
+          const dateComparison =
+            new Date(b.date).getTime() - new Date(a.date).getTime();
+          if (dateComparison !== 0) return dateComparison;
+
+          return b.time.localeCompare(a.time);
+        });
+
+        setTreatments(dogTreatments);
+      } catch (err) {
+        console.error("Error fetching treatments:", err);
+      } finally {
+        setTreatmentsLoading(false);
+      }
+    };
+
+    if (activeTab === "treatments") {
+      fetchTreatments();
+    }
+  }, [dogID, activeTab]);
+
   const handleSaveDescription = async () => {
     if (!dogID) return;
 
@@ -92,22 +144,26 @@ const DogDetail = () => {
   const handleSaveDetails = async () => {
     if (!dogID) return;
 
+    const formData = new FormData();
+    formData.append("name", editableFields.name);
+    formData.append("age", editableFields.age);
+    formData.append("race", editableFields.race);
+    formData.append("weight", editableFields.weight);
+    formData.append("ownerID", editableFields.ownerID);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await fetch(`https://localhost:7202/Dog/${dogID}`, {
+        method: "PUT",
+        body: formData,
+      });
 
-      setDog((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: editableFields.name,
-              age: Number.parseInt(editableFields.age) || 0,
-              race: editableFields.race,
-              weight: Number.parseFloat(editableFields.weight) || 0,
-              ownerID: Number.parseInt(editableFields.ownerID) || 0,
-            }
-          : null
-      );
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
 
+      const updatedDog = await response.json();
+      setDog(updatedDog);
       setIsEditingDetails(false);
     } catch (error) {
       console.error("Error updating dog details:", error);
@@ -138,35 +194,53 @@ const DogDetail = () => {
   };
 
   const handleImageUploadClick = () => {
+    setIsEditingImage(true);
     fileInputRef.current?.click();
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!dogID) return;
-    if (!e.target.files || e.target.files.length === 0) return;
+    if (!e.target.files || e.target.files.length === 0) {
+      setIsEditingImage(false);
+      return;
+    }
 
     const file = e.target.files[0];
 
     if (file.size > 2 * 1024 * 1024) {
       alert("Bild ist zu groß. Maximale Größe beträgt 2MB.");
+      setIsEditingImage(false);
       return;
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
       alert("Ungültiger Dateityp. Nur JPG, PNG und GIF sind erlaubt.");
+      setIsEditingImage(false);
       return;
     }
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+
+      setImageError(false);
+
+      setIsEditingImage(false);
     } catch (error) {
       console.error("Error uploading image:", error);
+      setIsEditingImage(false);
     }
+  };
+
+  const handleTreatmentClick = (treatmentID: number) => {
+    navigate(`/treatments/${treatmentID}`);
+  };
+
+  const handleAddTreatment = () => {
+    navigate(`/treatments/create?dogID=${dogID}`);
   };
 
   if (loading) {
@@ -193,19 +267,24 @@ const DogDetail = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 relative">
         <h1 className="text-3xl font-bold text-foreground">{dog.name}</h1>
-        <div className="flex gap-2">
+        <p className="text-muted-foreground mt-2">
+          Details und Informationen zum Hund
+        </p>
+        <div className="absolute right-0 top-0 flex gap-2">
           <button
             onClick={() => navigate("/dogs")}
-            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer"
+            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer flex items-center gap-2"
           >
+            <ArrowLeft size={18} />
             Zurück
           </button>
           <button
             onClick={() => setShowDeleteDialog(true)}
-            className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer"
+            className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2"
           >
+            <Trash2 size={18} />
             Löschen
           </button>
         </div>
@@ -224,7 +303,14 @@ const DogDetail = () => {
           </div>
           <div className="p-4">
             <div className="aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-              {dog.dogID && !imageError ? (
+              {isEditingImage ? (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-foreground mb-2"></div>
+                  <p className="text-muted-foreground">
+                    Bild wird hochgeladen...
+                  </p>
+                </div>
+              ) : dog.dogID && !imageError ? (
                 <img
                   src={getImageUrl(dog.dogID) || "/placeholder.svg"}
                   alt={dog.name}
@@ -447,16 +533,59 @@ const DogDetail = () => {
             <h2 className="text-xl font-semibold text-card-foreground">
               Behandlungen
             </h2>
-            <button className="bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-3 py-1 rounded-lg text-sm flex items-center gap-1 cursor-pointer">
+            <button
+              onClick={handleAddTreatment}
+              className="bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-3 py-1 rounded-lg text-sm flex items-center gap-1 cursor-pointer"
+            >
               <Plus size={16} />
               Neue Behandlung
             </button>
           </div>
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">
-              Keine Behandlungen vorhanden.
-            </p>
-          </div>
+
+          {treatmentsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ff6c3e]"></div>
+            </div>
+          ) : treatments.length === 0 ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">
+                Keine Behandlungen vorhanden.
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 space-y-3">
+              {treatments.map((treatment) => (
+                <div
+                  key={treatment.treatmentID}
+                  className="flex justify-between items-center p-3 bg-muted rounded-lg hover:bg-muted/80 cursor-pointer transition-colors border border-transparent hover:border-[#ff6c3e]"
+                  onClick={() => handleTreatmentClick(treatment.treatmentID)}
+                >
+                  <div className="flex items-center">
+                    <div className="mr-3 p-2 bg-[#ff6c3e]/10 rounded-full">
+                      <Calendar className="h-5 w-5 text-[#ff6c3e]" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        Behandlung{" "}
+                        <span className="text-sm text-muted-foreground">
+                          #{treatment.treatmentID}
+                        </span>
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {parseLocalDate(treatment.date).toLocaleDateString(
+                          "de-DE"
+                        )}
+                        , {formatTime(treatment.time)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-[#ff6c3e] font-semibold">
+                    {treatment.cost.toFixed(2)} CHF
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
