@@ -30,6 +30,26 @@ export async function createDog(formData: FormData) {
   return await response.json();
 }
 
+export async function updateDog(updatedDog: CreateDogDTO) {
+  const response = await fetch(
+    `https://localhost:7202/Dog/${updatedDog.dogID}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedDog),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Update failed: ${response.status} ${errorText}`);
+  }
+
+  return await response.json();
+}
+
 export function getImageUrl(dogId: number | null | undefined) {
   if (!dogId) return "https://via.placeholder.com/400x300";
   return `https://localhost:7202/Dog/image/${dogId}`;

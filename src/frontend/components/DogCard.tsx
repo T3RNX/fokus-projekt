@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +18,7 @@ const DogCard: React.FC<DogCardProps> = ({ dogID, name, age }) => {
   return (
     <div
       onClick={handleClick}
-      className="bg-card rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform duration-200 hover:scale-105 hover:shadow-lg border border-border"
+      className="bg-card rounded-lg overflow-hidden shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg border border-border hover:border-[#ff6c3e]"
     >
       <div className="h-[240px] relative bg-muted flex justify-center items-center">
         {!dogID || imageError ? (
