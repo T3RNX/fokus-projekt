@@ -1,3 +1,14 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=bugs)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=T3RNX_fokus-projekt&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=T3RNX_fokus-projekt)
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
