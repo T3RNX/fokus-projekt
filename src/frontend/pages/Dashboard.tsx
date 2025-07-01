@@ -7,7 +7,7 @@ import { getAllDogs, getImageUrl } from "../API/Dog";
 import { Card, CardContent } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw, Calendar } from "lucide-react";
-import { isToday, parseLocalDate, formatTime } from "@/lib/date-utils";
+import { isToday, parseLocalDate, formatTime } from "../src/lib/date-utils";
 
 interface Treatment {
   treatmentID: number;
@@ -448,7 +448,7 @@ const Dashboard: React.FC = () => {
                         className="h-full w-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
-                            "https://via.placeholder.com/40";
+                            "https://placehold.co/40";
                         }}
                       />
                     </div>
@@ -525,7 +525,7 @@ const Dashboard: React.FC = () => {
                             className="h-full w-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src =
-                                "https://via.placeholder.com/40";
+                                "https://placehold.co/40";
                             }}
                           />
                         </div>
@@ -592,7 +592,7 @@ const Dashboard: React.FC = () => {
                           className="h-full w-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
-                              "https://via.placeholder.com/40";
+                              "https://placehold.co/40";
                           }}
                         />
                       </div>
