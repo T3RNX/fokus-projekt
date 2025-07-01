@@ -9,5 +9,6 @@ namespace BDogs
 
         public DbSet<Dog> Dogs { get; set; }
         public DbSet<Treatment> Treatments { get; set; }
+        public DbSet<Owner> Owners { get; set; }
     }
 }
