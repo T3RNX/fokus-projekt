@@ -2,12 +2,15 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/card";
-import { Input } from "../components/ui/input";
+import { Input } from "../components/ui/Input";
 import { getAllDogs, type Dog } from "../API/Dog";
 import { createTreatment } from "../API/Treatment";
-import { getCurrentDateString, getCurrentTimeString } from "@/lib/date-utils";
+import {
+  getCurrentDateString,
+  getCurrentTimeString,
+} from "../src/lib/date-utils";
 
 interface FormData {
   dogID: number;
@@ -120,11 +123,7 @@ export default function CreateTreatmentPage() {
   };
 
   const handleBack = () => {
-    if (preselectedDogID) {
-      navigate(`/dogs/${preselectedDogID}?tab=treatments`);
-    } else {
-      navigate("/treatments");
-    }
+    navigate(-1);
   };
 
   return (

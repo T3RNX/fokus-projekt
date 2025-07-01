@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { getImageUrl } from "../API/Dog";
 import { getAllTreatments } from "../API/Treatment";
-import { parseLocalDate, formatTime } from "@/lib/date-utils";
+import { parseLocalDate, formatTime } from "../src/lib/date-utils";
 
 interface Treatment {
   treatmentID: number;
@@ -74,6 +74,10 @@ export default function BehandlungenPage() {
     navigate(`/treatments/${treatmentID}`);
   };
 
+  const handleCreateTreatment = () => {
+    navigate("/treatments/create");
+  };
+
   const filteredTreatments = treatments.filter((treatment) => {
     const lower = searchTerm.toLowerCase();
     return (
@@ -85,21 +89,18 @@ export default function BehandlungenPage() {
   });
 
   return (
-    <div>
-      <div className="mb-6 relative">
-        <h1 className="text-3xl font-bold text-foreground">Behandlungen</h1>
-        <p className="text-muted-foreground mt-2">
-          Verwalten Sie alle Behandlungen für Hunde
-        </p>
-        <div className="absolute right-0 top-0">
-          <Button
-            onClick={() => navigate("/treatments/create")}
-            className="bg-[#ff6c3e] hover:bg-[#ff6c3e]/90 text-white"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Neue Behandlung
-          </Button>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Behandlungen</h1>
+          <p className="text-muted-foreground mt-2">
+            Verwalten Sie alle Behandlungen für Hunde
+          </p>
         </div>
+        <Button onClick={handleCreateTreatment} className="cursor-pointer">
+          <Plus className="w-4 h-4 mr-2" />
+          Neue Behandlung
+        </Button>
       </div>
 
       {error && (
@@ -174,7 +175,7 @@ export default function BehandlungenPage() {
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          "https://via.placeholder.com/40";
+                          "https://placehold.co/40";
                       }}
                     />
                   </div>

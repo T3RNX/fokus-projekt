@@ -162,41 +162,58 @@ export default function TreatmentDetailsPage() {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   if (isLoading) {
-    return <div className="text-center py-12">Lade Behandlung...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 text-center">
+        Lade Behandlung...
+      </div>
+    );
   }
 
   if (!treatment) {
     return (
-      <div className="text-center py-12 text-red-500">
+      <div className="flex items-center justify-center py-12 text-center text-red-500">
         Behandlung nicht gefunden
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6 relative">
-        <h1 className="text-3xl font-bold text-foreground">
-          Behandlungsdetails
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Details und Bearbeitung der Behandlung
-        </p>
-        <div className="absolute right-0 top-0 flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/treatments")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Zurück
           </Button>
-          <Button
-            variant="destructive"
-            onClick={() => setShowDeleteDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <Trash2 size={18} />
-            Löschen
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Behandlung #{treatment.treatmentID}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {dogName || `Hund #${treatment.dogID}`} •{" "}
+              {parseLocalDate(treatment.date).toLocaleDateString("de-DE")} •{" "}
+              {formatTime(treatment.time)}
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => setShowDeleteDialog(true)}
+          className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer sm:items-center flex items-center justify-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Löschen
+        </button>
       </div>
 
       {error && (
@@ -242,7 +259,7 @@ export default function TreatmentDetailsPage() {
                   className="w-8 h-8 rounded-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      "https://via.placeholder.com/40";
+                      "https://placehold.co/40";
                   }}
                 />
                 <span>{dogName || `Hund #${treatment.dogID}`}</span>
