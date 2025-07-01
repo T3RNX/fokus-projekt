@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import DogCard from "../components/DogCard";
 import { type Dog, getAllDogs } from "../API/Dog";
 
@@ -37,21 +37,19 @@ const Dogs = () => {
   };
 
   return (
-    <div>
-      <div className="mb-6 relative">
-        <h1 className="text-3xl font-bold text-foreground">Hunde</h1>
-        <p className="text-muted-foreground mt-2">
-          Verwalten Sie Ihre Hunde und deren Informationen
-        </p>
-        <div className="absolute right-0 top-0">
-          <Button
-            onClick={handleAddClick}
-            className="bg-[#ff6c3e] hover:bg-[#ff6c3e]/90 text-white"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Neuer Hund
-          </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Hunde</h1>
+          <p className="text-muted-foreground mt-2">
+            Verwalten Sie Ihre Hunde und deren Informationen
+          </p>
         </div>
+        <Button onClick={handleAddClick} className="cursor-pointer">
+          <Plus className="w-4 h-4 mr-2" />
+          Neuer Hund
+        </Button>
       </div>
 
       {isLoading ? (

@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Trash2,
   Calendar,
+  ChevronDown,
 } from "lucide-react";
 import {
   type Dog as DogType,
@@ -16,7 +17,9 @@ import {
   getImageUrl,
 } from "../API/Dog";
 import { getAllTreatments } from "../API/Treatment";
-import { parseLocalDate, formatTime } from "@/lib/date-utils";
+import { parseLocalDate, formatTime } from "../../frontend/src/lib/date-utils";
+import { Button } from "../components/ui/Button";
+import { getOwnerById, getAllOwners } from "../API/Owner";
 
 interface Treatment {
   treatmentID: number;
@@ -36,12 +39,22 @@ interface EditableDogFields {
   ownerID: string;
 }
 
+interface Owner {
+  ownerID: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
 const DogDetail = () => {
   const { dogID } = useParams<{ dogID: string }>();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [dog, setDog] = useState<DogType | null>(null);
+  const [owner, setOwner] = useState<Owner | null>(null);
+  const [owners, setOwners] = useState<Owner[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [treatmentsLoading, setTreatmentsLoading] = useState(true);
@@ -50,6 +63,7 @@ const DogDetail = () => {
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [description, setDescription] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showOwnerDropdown, setShowOwnerDropdown] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [editableFields, setEditableFields] = useState<EditableDogFields>({
@@ -76,6 +90,24 @@ const DogDetail = () => {
           ownerID: fetchedDog.ownerID?.toString() || "",
         });
         setDescription(fetchedDog.description || "");
+
+        // Fetch owner data
+        if (fetchedDog.ownerID) {
+          try {
+            const ownerData = await getOwnerById(fetchedDog.ownerID);
+            setOwner(ownerData);
+          } catch (ownerErr) {
+            console.error("Error fetching owner:", ownerErr);
+          }
+        }
+
+        // Fetch all owners for dropdown
+        try {
+          const ownersData = await getAllOwners();
+          setOwners(ownersData);
+        } catch (ownersErr) {
+          console.error("Error fetching owners:", ownersErr);
+        }
       } catch (err) {
         console.error("Error fetching dog:", err);
       } finally {
@@ -141,6 +173,22 @@ const DogDetail = () => {
     }));
   };
 
+  const handleOwnerSelect = (selectedOwner: Owner) => {
+    setEditableFields((prev) => ({
+      ...prev,
+      ownerID: selectedOwner.ownerID.toString(),
+    }));
+    setShowOwnerDropdown(false);
+  };
+
+  const getSelectedOwner = () => {
+    return owners.find(owner => owner.ownerID.toString() === editableFields.ownerID);
+  };
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const handleSaveDetails = async () => {
     if (!dogID) return;
 
@@ -164,6 +212,13 @@ const DogDetail = () => {
 
       const updatedDog = await response.json();
       setDog(updatedDog);
+      
+      // Update owner if it changed
+      if (dog?.ownerID !== Number.parseInt(editableFields.ownerID)) {
+        const newOwner = owners.find(owner => owner.ownerID.toString() === editableFields.ownerID);
+        setOwner(newOwner || null);
+      }
+      
       setIsEditingDetails(false);
     } catch (error) {
       console.error("Error updating dog details:", error);
@@ -180,6 +235,7 @@ const DogDetail = () => {
         ownerID: dog.ownerID?.toString() || "",
       });
     }
+    setShowOwnerDropdown(false);
     setIsEditingDetails(false);
   };
 
@@ -220,18 +276,32 @@ const DogDetail = () => {
       return;
     }
 
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      const response = await fetch(
+        `https://localhost:7202/Dog/upload-image/${dogID}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
 
       setImageError(false);
-
-      setIsEditingImage(false);
+      // Optional: Bild neu laden, z. B. durch Änderung der URL mit Timestamp-Query
+      setDog((prev) => (prev ? { ...prev } : null));
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("Fehler beim Hochladen des Bildes:", error);
+      alert("Fehler beim Hochladen des Bildes.");
+    } finally {
       setIsEditingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -241,6 +311,11 @@ const DogDetail = () => {
 
   const handleAddTreatment = () => {
     navigate(`/treatments/create?dogID=${dogID}`);
+  };
+
+  const handleCancelDescription = () => {
+    setDescription(dog?.description || "");
+    setIsEditing(false);
   };
 
   if (loading) {
@@ -256,7 +331,7 @@ const DogDetail = () => {
       <div className="bg-card rounded-lg p-6 border border-border text-center">
         <p className="text-muted-foreground">Hund nicht gefunden</p>
         <button
-          onClick={() => navigate("/dogs")}
+          onClick={handleBack}
           className="mt-4 bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-4 py-2 rounded-lg cursor-pointer"
         >
           Zurück zur Übersicht
@@ -266,28 +341,33 @@ const DogDetail = () => {
   }
 
   return (
-    <div>
-      <div className="mb-6 relative">
-        <h1 className="text-3xl font-bold text-foreground">{dog.name}</h1>
-        <p className="text-muted-foreground mt-2">
-          Details und Informationen zum Hund
-        </p>
-        <div className="absolute right-0 top-0 flex gap-2">
-          <button
-            onClick={() => navigate("/dogs")}
-            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer flex items-center gap-2"
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="cursor-pointer"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Zurück
-          </button>
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2"
-          >
-            <Trash2 size={18} />
-            Löschen
-          </button>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{dog.name}</h1>
+            <p className="text-muted-foreground mt-1">
+              Details und Informationen zum Hund
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => setShowDeleteDialog(true)}
+          className="bg-destructive hover:bg-destructive/90 text-white px-4 py-2 rounded-lg cursor-pointer sm:items-center flex items-center justify-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Löschen
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -418,19 +498,65 @@ const DogDetail = () => {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm text-muted-foreground mb-1">
-                  Besitzer ID
+                  Besitzer
                 </label>
                 {isEditingDetails ? (
-                  <input
-                    type="number"
-                    value={editableFields.ownerID}
-                    onChange={handleFieldChange}
-                    name="ownerID"
-                    className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input"
-                  />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowOwnerDropdown(!showOwnerDropdown)}
+                      className="w-full bg-muted text-card-foreground p-3 rounded-lg border border-input text-left flex items-center justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#ff6c3e]"
+                    >
+                      {getSelectedOwner() ? (
+                        `${getSelectedOwner()?.firstName} ${getSelectedOwner()?.lastName}`
+                      ) : (
+                        "Besitzer auswählen"
+                      )}
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform ${
+                          showOwnerDropdown ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {showOwnerDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                        {owners.length === 0 ? (
+                          <div className="px-4 py-2 text-muted-foreground">
+                            Keine Besitzer gefunden
+                          </div>
+                        ) : (
+                          owners.map((ownerOption) => (
+                            <button
+                              key={ownerOption.ownerID}
+                              type="button"
+                              onClick={() => handleOwnerSelect(ownerOption)}
+                              className="w-full px-4 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none cursor-pointer"
+                            >
+                              <div className="font-medium">
+                                {ownerOption.firstName} {ownerOption.lastName}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {ownerOption.email}
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="bg-muted text-card-foreground p-3 rounded-lg">
-                    {dog.ownerID}
+                    {owner ? (
+                      <button
+                        onClick={() => navigate(`/owner/${owner.ownerID}`)}
+                        className="bg-[#ff6c3e] hover:bg-[#e55c2e] text-white px-4 py-2 rounded-lg font-medium cursor-pointer transition-colors"
+                      >
+                        {owner.firstName} {owner.lastName}
+                      </button>
+                    ) : (
+                      `ID: ${dog?.ownerID || "Unbekannt"}`
+                    )}
                   </div>
                 )}
               </div>
@@ -459,7 +585,7 @@ const DogDetail = () => {
       <div className="mt-6 mb-4">
         <div className="inline-flex bg-card rounded-lg overflow-hidden border border-border">
           <button
-            className={`px-6 py-3 ${
+            className={`px-6 py-3 cursor-pointer ${
               activeTab === "description"
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
@@ -469,7 +595,7 @@ const DogDetail = () => {
             Beschreibung
           </button>
           <button
-            className={`px-6 py-3 ${
+            className={`px-6 py-3 cursor-pointer ${
               activeTab === "treatments"
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
@@ -505,7 +631,7 @@ const DogDetail = () => {
                 />
                 <div className="flex justify-end gap-2 mt-4">
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancelDescription}
                     className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 cursor-pointer"
                   >
                     Abbrechen

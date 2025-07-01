@@ -1,11 +1,20 @@
 "use client";
 
 import React from "react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createDog } from "../API/Dog";
-import { Plus, ArrowLeft, Upload, X } from "lucide-react";
+import { getAllOwners } from "../API/Owner";
+import { Plus, ArrowLeft, Upload, X, ChevronDown } from "lucide-react";
+import { Button } from "../components/ui/Button";
+
+interface Owner {
+  ownerID: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
 
 const CreateDogPage = () => {
   const navigate = useNavigate();
@@ -13,6 +22,9 @@ const CreateDogPage = () => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [loadingOwners, setLoadingOwners] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -22,9 +34,37 @@ const CreateDogPage = () => {
     ownerID: "",
   });
 
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        setLoadingOwners(true);
+        const ownersData = await getAllOwners();
+        setOwners(ownersData);
+      } catch (err) {
+        console.error("Error fetching owners:", err);
+        setError("Fehler beim Laden der Besitzer");
+      } finally {
+        setLoadingOwners(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleOwnerSelect = (owner: Owner) => {
+    setFormData((prev) => ({ ...prev, ownerID: owner.ownerID.toString() }));
+    setShowDropdown(false);
+  };
+
+  const getSelectedOwner = () => {
+    return owners.find(
+      (owner) => owner.ownerID.toString() === formData.ownerID
+    );
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +84,10 @@ const CreateDogPage = () => {
   const removeImage = () => {
     setSelectedImage(null);
     setPreviewUrl("");
+  };
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   const validateForm = () => {
@@ -83,7 +127,7 @@ const CreateDogPage = () => {
       }
 
       await createDog(submitData);
-      navigate("/dogs");
+      navigate(-1);
     } catch (err) {
       console.error("Error creating dog:", err);
       setError(
@@ -95,23 +139,28 @@ const CreateDogPage = () => {
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Neuen Hund erstellen
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Fügen Sie einen neuen Hund zur Datenbank hinzu
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zurück
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Neuen Hund erstellen
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Fügen Sie einen neuen Hund zur Datenbank hinzu
+            </p>
+          </div>
         </div>
-        <button
-          onClick={() => navigate("/dogs")}
-          className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 cursor-pointer"
-        >
-          <ArrowLeft size={18} />
-          Zurück
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -137,7 +186,7 @@ const CreateDogPage = () => {
                 </button>
               </div>
             ) : (
-              <div className="border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center p-8 mb-4 aspect-square">
+              <label className="border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center p-6 mb-4 h-64 lg:h-auto lg:aspect-square cursor-pointer hover:border-[#ff6c3e] transition-colors">
                 <Upload size={48} className="text-muted-foreground mb-3" />
                 <p className="text-center text-muted-foreground mb-2">
                   Ziehen Sie ein Bild hierher oder klicken Sie, um ein Bild
@@ -146,7 +195,13 @@ const CreateDogPage = () => {
                 <p className="text-xs text-muted-foreground">
                   JPG, PNG oder GIF, max. 5MB
                 </p>
-              </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
             )}
 
             <label className="w-full bg-[#ff6c3e] hover:bg-[#e55c2e] text-white py-2 px-4 rounded-lg cursor-pointer flex items-center justify-center gap-2 transition-colors">
@@ -252,22 +307,55 @@ const CreateDogPage = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label
-                    htmlFor="ownerID"
-                    className="block text-sm font-medium text-card-foreground mb-1"
-                  >
-                    Besitzer ID <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-card-foreground mb-1">
+                    Besitzer <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    id="ownerID"
-                    name="ownerID"
-                    value={formData.ownerID}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border border-input"
-                    placeholder="ID des Besitzers"
-                    min="1"
-                  />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="w-full px-4 py-2 bg-muted text-card-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-[#ff6c3e] border cursor-pointer border-input text-left flex items-center justify-between"
+                    >
+                      {loadingOwners
+                        ? "Besitzer werden geladen..."
+                        : getSelectedOwner()
+                        ? `${getSelectedOwner()?.firstName} ${
+                            getSelectedOwner()?.lastName
+                          }`
+                        : "Besitzer auswählen"}
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform ${
+                          showDropdown ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {showDropdown && !loadingOwners && (
+                      <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                        {owners.length === 0 ? (
+                          <div className="px-4 py-2 text-muted-foreground">
+                            Keine Besitzer gefunden
+                          </div>
+                        ) : (
+                          owners.map((owner) => (
+                            <button
+                              key={owner.ownerID}
+                              type="button"
+                              onClick={() => handleOwnerSelect(owner)}
+                              className="w-full cursor-pointer px-4 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none"
+                            >
+                              <div className="font-medium">
+                                {owner.firstName} {owner.lastName}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {owner.email}
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
