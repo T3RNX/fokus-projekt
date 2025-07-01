@@ -4,8 +4,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 import { getImageUrl } from "../API/Dog";
 import { getAllDogs, type Dog } from "../API/Dog";
 import {

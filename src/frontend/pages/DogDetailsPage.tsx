@@ -294,7 +294,6 @@ const DogDetail = () => {
       }
 
       setImageError(false);
-      // Optional: Bild neu laden, z. B. durch Änderung der URL mit Timestamp-Query
       setDog((prev) => (prev ? { ...prev } : null));
     } catch (error) {
       console.error("Fehler beim Hochladen des Bildes:", error);

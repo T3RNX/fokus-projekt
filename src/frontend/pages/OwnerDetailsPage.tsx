@@ -78,13 +78,11 @@ interface OwnerDetailsProps {
   onNavigateBack?: () => void;
   onNavigateToEdit?: (ownerId: number) => void;
   onNavigateToDogDetails?: (dogId: number) => void;
-  onNavigateToAddDog?: (ownerId: number) => void;
 }
 
 const OwnerDetailsPage: React.FC<OwnerDetailsProps> = ({
   onNavigateToEdit,
-  onNavigateToDogDetails,
-  onNavigateToAddDog,
+  onNavigateToDogDetails,,
 }) => {
   const navigate = useNavigate();
   const { ownerID } = useParams<{ ownerID: string }>();

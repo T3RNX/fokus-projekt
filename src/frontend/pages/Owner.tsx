@@ -200,10 +200,6 @@ const Owner: React.FC<OwnerProps> = ({
     return { total, withPets, recentVisits };
   }, [owners]);
 
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
