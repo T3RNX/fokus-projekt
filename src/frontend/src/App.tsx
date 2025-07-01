@@ -7,9 +7,11 @@ import DogDetailsPage from "../pages/DogDetailsPage";
 import Owner from "../pages/Owner";
 import Treatments from "../pages/Treatments";
 import CreateTreatmentPage from "../pages/CreateTreatmentPage";
+import CreateOwnerPage from "../pages/CreateOwnerPage";
 import Settings from "../pages/Settings";
 import { ThemeProvider } from "../context/ThemeContext";
 import TreatmentDetailsPage from "../pages/TreatmentDetailsPage";
+import OwnerDetailsPage from "../pages/OwnerDetailsPage";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/dogs/create" element={<CreateDogPage />} />
           <Route path="/dogs/:dogID" element={<DogDetailsPage />} />
           <Route path="/owner" element={<Owner />} />
+          <Route path="/owner/create" element={<CreateOwnerPage />} />
+          <Route path="/owner/:ownerID" element={<OwnerDetailsPage />} />
           <Route path="/treatments" element={<Treatments />} />
           <Route path="/treatments/create" element={<CreateTreatmentPage />} />
           <Route
